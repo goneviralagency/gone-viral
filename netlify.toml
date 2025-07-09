@@ -32,3 +32,8 @@
   from = "/reset"
   to = "/reset.html"
   status = 200
+
+[[redirects]]
+  from = "/verified"
+  to = "/verified.html"
+  status = 200

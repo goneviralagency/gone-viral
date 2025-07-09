@@ -9,14 +9,14 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
     const supabase = createClient(
       'https://dptolytfqrdzhvdlntfb.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
     )
 
     let debounceTimer
-    const tiktokInput = document.getElementById('tiktok')
     const avatar = document.getElementById('avatar')
     const preview = document.getElementById('username-preview')
     const result = document.getElementById('result')
+    const tiktokInput = document.getElementById('tiktok')
 
     async function fetchTikTokPreview(username) {
       try {
@@ -30,16 +30,15 @@
         preview.textContent = '@' + usernameFound
       } catch (e) {
         avatar.src = ''
-        preview.textContent = 'Not Found'
+        preview.textContent = '❌ Profile not found'
       }
     }
 
-    tiktokInput.addEventListener('input', () => {
-      clearTimeout(debounceTimer)
-      const val = tiktokInput.value.replace('@', '').trim()
+    window.startTikTokPreview = function() {
+      const val = document.getElementById('tiktok').value.replace('@','').trim()
       if (val.length < 2) return
-      debounceTimer = setTimeout(() => fetchTikTokPreview(val), 600)
-    })
+      fetchTikTokPreview(val)
+    }
 
     window.signUp = async function (e) {
       e.preventDefault()
@@ -47,7 +46,7 @@
       const email = document.getElementById('email').value
       const password = document.getElementById('password').value
       const confirm = document.getElementById('confirm').value
-      const tiktok = tiktokInput.value.replace('@','').trim()
+      const tiktok = document.getElementById('tiktok').value.replace('@','').trim()
       const diamond = document.getElementById('diamond').value
       const timezone = document.getElementById('timezone').value
       const agency = document.getElementById('agency').value
@@ -62,7 +61,7 @@
         const html = await res.text()
         avatarUrl = html.match(/"avatarLarger":"(.*?)"/)?.[1] || ''
         username = html.match(/"uniqueId":"(.*?)"/)?.[1] || tiktok
-      } catch {}
+      } catch { }
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -94,8 +93,9 @@
       <input id='password' type='password' required placeholder='Password' class='w-full p-2 bg-gray-800 text-white rounded'>
       <input id='confirm' type='password' required placeholder='Confirm Password' class='w-full p-2 bg-gray-800 text-white rounded'>
       <input id='tiktok' required placeholder='TikTok Username (no @)' class='w-full p-2 bg-gray-800 text-white rounded'>
+      <button type='button' onclick='startTikTokPreview()' class='w-full bg-blue-600 hover:bg-blue-500 py-1 rounded'>Preview TikTok</button>
 
-      <div class='flex items-center space-x-3 mt-1'>
+      <div class='flex items-center space-x-3 mt-2'>
         <img id='avatar' src='' class='w-12 h-12 rounded-full border border-pink-400' />
         <span id='username-preview' class='text-sm text-pink-300'></span>
       </div>

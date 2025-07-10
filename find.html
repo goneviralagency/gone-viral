@@ -180,6 +180,7 @@ async function renderCalendar(dateStr) {
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
         const level = getRangeLevel(e.diamond_range);
+        console.log("Comparing user level", userLevel, "(", currentRange, ") vs entry level", level, "(", e.diamond_range, ")");
         const colorClass = getColorClass(userLevel, level);
         const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;

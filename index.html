@@ -114,6 +114,9 @@
   </div>
   <div id="nav" class="nav-drawer">
     <a href="#" onclick="logout()">Log Out</a>
+    <a href="avail.html">Availability</a>
+
+    <a href="#" onclick="logout()">Log Out</a>
   </div>
 
   <div class="container" id="auth-container">
@@ -203,6 +206,12 @@
       if (!email || !password) return alert("Please enter both email and password.");
       const { error } = await client.auth.signInWithPassword({ email, password });
       if (error) return alert("Login error: " + error.message);
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user?.id) {
+        localStorage.setItem("gv_user_id", session.user.id);
+      }
+
       loadDashboard();
     };
 
@@ -232,7 +241,13 @@
 
     window.onload = async () => {
       const { data: { session } } = await client.auth.getSession();
-      if (session && session.user) loadDashboard();
+      if (session && session.user) 
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user?.id) {
+        localStorage.setItem("gv_user_id", session.user.id);
+      }
+
+      loadDashboard();
     };
   </script>
 </body>

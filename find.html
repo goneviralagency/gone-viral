@@ -173,7 +173,8 @@ async function renderCalendar(dateStr) {
     .eq("month", monthKey);
 
   const grouped = {};
-  entries.forEach(e => {
+  entries?.forEach(e => {
+  if (!e.date || !e.diamond_range) return;
     if (!grouped[e.date]) grouped[e.date] = [];
     if (filters.includes(e.diamond_range)) grouped[e.date].push(e);
   });
@@ -190,7 +191,7 @@ async function renderCalendar(dateStr) {
     cell.textContent = day;
 
     if (grouped[dateISO]) {
-      grouped[dateISO].forEach(entry => {
+      if (Array.isArray(grouped[dateISO])) grouped[dateISO].forEach(entry => {
         const tag = document.createElement("span");
         tag.className = `range-tag ${getColorClass(entry.diamond_range)}`;
         tag.textContent = entry.diamond_range;

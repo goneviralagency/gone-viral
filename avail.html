@@ -121,6 +121,7 @@
 
       
 
+
 cell.onclick = async () => {
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -162,7 +163,6 @@ cell.onclick = async () => {
       endTime.add(opt.cloneNode(true));
     }
   }
-  // Add 11:00 PM end boundary
   endTime.add(new Option("11:00 PM", "23:00"));
 
   document.getElementById("submit-time").onclick = async () => {
@@ -179,6 +179,8 @@ cell.onclick = async () => {
     cell.classList.add("booked");
     document.body.removeChild(modal);
   };
+};
+
 };
 
 };

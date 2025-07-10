@@ -201,17 +201,23 @@
     }
 
     window.confirmBattle = async function (id, requesterId) {
+
       await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
       await supabase.from("notifications").insert({ user_id: requesterId, type: "Battle Confirmed", message: "Your battle request has been confirmed." });
-      loadBattleRequests();
+      
+  alert("BATTLE CONFIRMED");
+  loadBattleRequests();
       loadScheduledBattles();
     };
 
     window.declineBattle = async function (id) {
+
       const reason = prompt("Please provide a reason for declining this battle:");
       if (reason === null) return;
       await supabase.from("battles").delete().eq("id", id);
-      loadBattleRequests();
+      
+  alert("BATTLE HAS BEEN DECLINED");
+  loadBattleRequests();
     };
 
     loadUser();

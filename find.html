@@ -251,7 +251,48 @@ async function renderCalendar(dateStr) {
               <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
               <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)}</p>
-              <button onclick="alert('Request Sent!')">REQUEST</button>
+              <button id="confirmRequestBtn">REQUEST</button>
+<script type="module">
+  setTimeout(() => {
+    document.getElementById("confirmRequestBtn").onclick = async function () {
+      const selected_time = e.start_time;
+      const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
+      const requesterAgency = currentUser?.user_metadata?.agency || "N/A";
+
+      // 1. Update availability
+      await supabase.from("availability")
+        .update({ status: "filled" })
+        .eq("user_id", e.user_id)
+        .eq("date", e.date)
+        .eq("start_time", e.start_time);
+
+      // 2. Insert into battles
+      await supabase.from("battles").insert([{
+        requester_id: currentUser.id,
+        recipient_id: e.user_id,
+        date: e.date,
+        time: selected_time,
+        status: "Request Sent",
+        requester_timezone: userTZ,
+        recipient_timezone: e.user_timezone || "N/A",
+        requester_range: currentRange,
+        recipient_range: e.diamond_range || "Unknown",
+        requester_username: requesterUsername,
+        recipient_username: e.tiktok_username || "Unknown",
+        requester_agency: requesterAgency,
+        recipient_agency: e.agency || "N/A"
+      }]);
+
+      const badge = document.getElementById("confirmationBadge");
+      if (badge) {
+        badge.style.display = "block";
+        setTimeout(() => { badge.style.display = "none"; }, 3000);
+      }
+      const popup = document.querySelector(".popup");
+      if (popup) popup.remove();
+    };
+  }, 100);
+</script>
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);

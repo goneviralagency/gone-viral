@@ -187,16 +187,18 @@ async function renderCalendar(dateStr) {
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
-          modal.innerHTML = `
-            <div class="popup-box">
-              <h3>@${e.tiktok_username || "Unknown"}</h3>
-              <p><strong>Diamond Range:</strong> ${e.diamond_range}</p>
-              <p><strong>Agency:</strong> ${e.agency || "-"}</p>
-              <p><strong>Timezone:</strong> ${e.timezone}</p>
-              <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
-              <button onclick="alert('Request battle')">REQUEST</button>
-            </div>`;
+          
+    modal.innerHTML = `
+      <div class="popup-box">
+        <h3>@${e.tiktok_username || "Unknown"}</h3>
+        <p><strong>Diamond Range:</strong> ${e.diamond_range || "Unknown"}</p>
+        <p><strong>Agency:</strong> ${e.agency || "-"}</p>
+        <p><strong>Timezone:</strong> ${e.timezone}</p>
+        <p><strong>Date:</strong> ${e.date}</p>
+        <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
+        <button onclick="alert('Request battle')">REQUEST</button>
+      </div>`;
+    
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };

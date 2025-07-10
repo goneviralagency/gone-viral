@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Availability Calendar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #monthSelector {
+      margin-bottom: 20px;
+      padding: 5px;
+    }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      max-width: 800px;
+      margin: auto;
+      gap: 5px;
+    }
+
+    .day {
+      background: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .header {
+      font-weight: bold;
+      background: #ddd;
+    }
+
+    .booked {
+      background: #a3eaa3 !important;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Choose Your Availability</h1>
+<select id="monthSelector"></select>
+<div id="calendar"></div>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  const supabase = createClient(
+    'https://dptolytfqrdzhvdlntfb.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTk3NTMwOSwiZXhwIjoyMDY3NTUxMzA5fQ.BSOl-XaUCSIHDsajNy5QgFr-1WOkruTrNTlyMRinbII'
+  );
+
+  const calendar = document.getElementById("calendar");
+  const monthSelector = document.getElementById("monthSelector");
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function generateMonthOptions() {
+    const now = new Date();
+    for (let i = -3; i <= 3; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const option = document.createElement("option");
+      option.value = date.toISOString();
+      option.text = date.toLocaleString("default", { month: "long", year: "numeric" });
+      if (i === 0) option.selected = true;
+      monthSelector.appendChild(option);
+    }
+  }
+
+  async function renderCalendar(dateStr) {
+    const selectedDate = new Date(dateStr);
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+
+    calendar.innerHTML = "";
+    weekdays.forEach(day => {
+      const header = document.createElement("div");
+      header.className = "header";
+      header.textContent = day;
+      calendar.appendChild(header);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      calendar.appendChild(empty);
+    }
+
+    const { data: bookedDates } = await supabase
+      .from("availability")
+      .select("*")
+      .eq("month", `${year}-${String(month + 1).padStart(2, "0")}`);
+
+    for (let day = 1; day <= totalDays; day++) {
+      const cell = document.createElement("div");
+      cell.className = "day";
+      const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      cell.textContent = day;
+
+      if (bookedDates.some(d => d.date === dateISO)) {
+        cell.classList.add("booked");
+      }
+
+      cell.onclick = async () => {
+        const start = prompt("Start time (HH:MM, 30min increments)");
+        const end = prompt("End time (HH:MM, 30min increments)");
+        if (!start || !end) return;
+
+        await supabase.from("availability").upsert({
+          date: dateISO,
+          month: `${year}-${String(month + 1).padStart(2, "0")}`,
+          start_time: start,
+          end_time: end
+        });
+
+        cell.classList.add("booked");
+      };
+
+      calendar.appendChild(cell);
+    }
+  }
+
+  monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
+
+  generateMonthOptions();
+  renderCalendar(monthSelector.value);
+</script>
+
+</body>
+</html>

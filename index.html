@@ -158,35 +158,7 @@
     <h2>Welcome <span id="dashboard-name"></span></h2>
     <p>Email: <span id="dashboard-email"></span></p>
     <p>Username: <span id="dashboard-username"></span></p>
-    <p>Range:
-  <select id="dashboard-range">
-    <option value="0-10K">0-10K</option>
-    <option value="0-20K">0-20K</option>
-    <option value="20-50K">20-50K</option>
-    <option value="50-100K">50-100K</option>
-    <option value="100-200K">100-200K</option>
-    <option value="200K+">200K+</option>
-  </select>
-</p>
-<p>Timezone:
-  <select id="dashboard-timezone">
-    <optgroup label="CA">
-      <option value="America/Toronto">America/Toronto</option>
-      <option value="America/Vancouver">America/Vancouver</option>
-    </optgroup>
-    <optgroup label="US">
-      <option value="America/New_York">America/New_York</option>
-      <option value="America/Chicago">America/Chicago</option>
-    </optgroup>
-    <optgroup label="UK">
-      <option value="Europe/London">Europe/London</option>
-    </optgroup>
-    <optgroup label="PH">
-      <option value="Asia/Manila">Asia/Manila</option>
-    </optgroup>
-  </select>
-</p>
-<p>Agency: <input id="dashboard-agency" value="Gone Viral" /></p>
+    <p>Range: <span id="dashboard-range"></span></p>
   </div>
 
   
@@ -291,8 +263,6 @@
     document.getElementById("dashboard-email").innerText = user.email;
     document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
     document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
-    document.getElementById("dashboard-timezone").innerText = user.user_metadata?.timezone || "-";
-    document.getElementById("dashboard-agency").innerText = user.user_metadata?.agency || "-";
   }
 
   window.onload = async () => {

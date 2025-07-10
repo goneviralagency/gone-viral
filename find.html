@@ -324,8 +324,12 @@ const popup = document.querySelector(".popup");
 
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
-await loadUserAndSetupUI();
-renderCalendar(monthSelector.value);
+
+(async () => {
+  await loadUserAndSetupUI();
+  renderCalendar(monthSelector.value);
+})();
+
 </script>
 </body>
 </html>

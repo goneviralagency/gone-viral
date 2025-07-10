@@ -69,12 +69,17 @@ button {
   position: fixed;
   top: 0; left: 0;
   width: 100%;
+  max-width: 800px;
   background: #000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 16px;
+  box-sizing: border-box;
   z-index: 999;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .hamburger {
   width: 30px;

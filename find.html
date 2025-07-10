@@ -1,69 +1,48 @@
-
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Find Creators</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Gone Viral Battle App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: #f9f9f9;
-      color: #222;
+      background: #f1f1f1;
       margin: 0;
     }
-    h1 {
-      font-size: 1.5rem;
-      margin: 90px 0 1rem 0;
+    h1, h2 {
       text-align: center;
     }
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 0 16px;
-    }
-    #monthSelector {
-      display: block;
-      margin: 0 auto 1rem;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    #calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-    }
-    .header {
-      font-weight: bold;
-      background: #ddd;
-      text-align: center;
-      padding: 10px;
+      padding: 20px;
     }
     .day {
       background: white;
       border: 1px solid #ccc;
-      padding: 10px;
-      min-height: 80px;
+      padding: 8px;
+      min-height: 60px;
+      position: relative;
     }
     .tag {
-      display: block;
-      padding: 4px 6px;
-      margin: 4px 0;
+      display: inline-block;
+      padding: 4px 8px;
+      margin-top: 4px;
       border-radius: 6px;
       font-size: 0.8rem;
       cursor: pointer;
     }
-    .green { background: #a3eaa3; color: #1e4620; }
-    .orange { background: #ffe5b4; color: #7a4a00; }
-    .red { background: #f8b0b0; color: #a70000; }
-
+    .green { background: #a3eaa3; }
+    .orange { background: #ffe5b4; }
+    .red { background: #f8b0b0; }
+    .header {
+      font-weight: bold;
+      text-align: center;
+    }
     .popup {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.7);
       display: flex;
       justify-content: center;
@@ -73,202 +52,172 @@
     .popup-box {
       background: white;
       padding: 20px;
-      border-radius: 12px;
+      border-radius: 10px;
       text-align: center;
-      max-width: 300px;
+      width: 300px;
     }
     .popup-box button {
       margin-top: 10px;
-      padding: 10px 20px;
-      background: red;
-      color: white;
+      padding: 8px 12px;
       font-weight: bold;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
     }
   </style>
 </head>
 <body>
-<div class="container">
-<h1>Find Available Creators</h1>
-<div id="diamondRangeWrapper" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;"><span style="font-weight: bold;">Your Diamond Range:</span></div><select id="monthSelector"></select>
-<div id="calendar"></div>
-</div>
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-const supabase = createClient(
-  'https://dptolytfqrdzhvdlntfb.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
-);
-
-const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
-const calendar = document.getElementById("calendar");
-const monthSelector = document.getElementById("monthSelector");
-
-let currentUser = null;
-let currentRange = "0-10K";
-
-function getRangeLevel(range) {
-  return levels.indexOf(range);
-}
-
-function getColorClass(userLevel, oppLevel) {
-  if (userLevel === oppLevel) return "green";
-  if (userLevel < oppLevel) return "red";
-  return "orange";
-}
-
-function convertToLocalTime(timeStr, timezone) {
-  try {
-    const date = new Date(`1970-01-01T${timeStr}:00Z`);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone });
-  } catch {
-    return timeStr;
-  }
-}
-
-function generateMonthOptions() {
-  const now = new Date();
-  for (let i = -2; i <= 2; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const opt = document.createElement("option");
-    opt.value = date.toISOString();
-    opt.text = date.toLocaleString("default", { month: "long", year: "numeric" });
-    if (i === 0) opt.selected = true;
-    monthSelector.appendChild(opt);
-  }
-}
-
-async function loadUserAndSetupUI() {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const session = sessionData?.session;
-
-  if (!session || !session.user) {
-    const email = prompt("Enter your email to login:");
-    const password = prompt("Enter your password:");
-    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) {
-      alert("Login failed: " + loginError.message);
-      return;
+  <div class="container">
+    <h1>Gone Viral Battle App</h1>
+    <div>
+      <select id="monthSelector"></select>
+    </div>
+    <div id="calendar" class="calendar"></div>
+  </div>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient(
+      'https://dptolytfqrdzhvdlntfb.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
+    );
+    const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
+    const calendar = document.getElementById("calendar");
+    const monthSelector = document.getElementById("monthSelector");
+    let currentUser = null;
+    let currentRange = "0-10K";
+    function getRangeLevel(r) { return levels.indexOf(r); }
+    function getColor(userLevel, oppLevel) {
+      if (userLevel === oppLevel) return "green";
+      if (userLevel < oppLevel) return "red";
+      return "orange";
     }
-    currentUser = loginData.user;
-  } else {
-    currentUser = session.user;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  currentUser = user;
-  const userId = user?.id;
-
-  const { data } = await supabase.from("users").select("diamond_range").eq("id", userId).single();
-  currentRange = data?.diamond_range || "0-10K";
-
-  const selector = document.createElement("select");
-  selector.id = "diamondRangeSelector";
-  levels.forEach(lvl => {
-    const opt = document.createElement("option");
-    opt.value = lvl;
-    opt.text = lvl;
-    if (lvl === currentRange) opt.selected = true;
-    selector.appendChild(opt);
-  });
-
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = "Save Range";
-  saveBtn.onclick = async () => {
-    const newRange = document.getElementById("diamondRangeSelector").value;
-    const { error } = await supabase.from("users").update({ diamond_range: newRange }).eq("id", userId);
-    if (!error) {
-      currentRange = newRange;
-      renderCalendar(monthSelector.value);
+    function convertTime(t, tz) {
+      const date = new Date(`1970-01-01T${t}:00Z`);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: tz });
     }
-  };
-
-  const top = document.querySelector(".container");
-  top.insertBefore(document.createTextNode("Your Diamond Range:"), monthSelector);
-  top.insertBefore(selector, monthSelector);
-  top.insertBefore(saveBtn, monthSelector);
-  top.insertBefore(document.createElement("br"), monthSelector);
-}
-
-async function renderCalendar(dateStr) {
-  const userLevel = getRangeLevel(currentRange);
-  const userId = currentUser?.id;
-  const userTZ = currentUser?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  const selected = new Date(dateStr);
-  const year = selected.getFullYear();
-  const month = selected.getMonth();
-  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
-
-  calendar.innerHTML = "";
-  weekdays.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "header";
-    div.textContent = d;
-    calendar.appendChild(div);
-  });
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const totalDays = new Date(year, month + 1, 0).getDate();
-
-  const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
-  const grouped = {};
-  data?.forEach(entry => {
-    const key = entry.date;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(entry);
-  });
-
-  for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
-
-  for (let day = 1; day <= totalDays; day++) {
-    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const cell = document.createElement("div");
-    cell.className = "day";
-    cell.textContent = day;
-
-    if (grouped[dateKey]) {
-      grouped[dateKey].forEach(e => {
-        const safeRange = e.diamond_range ?? "MISSING";
-        console.log("AVAILABILITY RANGE FOR", e.user_id, "=", safeRange);
-        const oppLevel = getRangeLevel(safeRange);
-        const colorClass = getColorClass(userLevel, oppLevel);
-
-        const tag = document.createElement("span");
-        tag.className = `tag ${colorClass}`;
-        tag.textContent = safeRange;
-
-        tag.onclick = () => {
-          const modal = document.createElement("div");
-          modal.className = "popup";
-          modal.innerHTML = `
-            <div class="popup-box">
-              <h3>@${e.tiktok_username || "Unknown"}</h3>
-              <p><strong>Diamond Range:</strong> ${safeRange}</p>
-              <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
-              <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
-              <button onclick="alert('Request Sent!')">REQUEST</button>
-            </div>`;
-          modal.onclick = () => document.body.removeChild(modal);
-          document.body.appendChild(modal);
-        };
-
-        cell.appendChild(tag);
+    function generateMonthOptions() {
+      const now = new Date();
+      for (let i = -2; i <= 2; i++) {
+        const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const opt = document.createElement("option");
+        opt.value = date.toISOString();
+        opt.text = date.toLocaleString("default", { month: "long", year: "numeric" });
+        if (i === 0) opt.selected = true;
+        monthSelector.appendChild(opt);
+      }
+    }
+    async function login() {
+      const { data: session } = await supabase.auth.getSession();
+      if (session?.session?.user) {
+        currentUser = session.session.user;
+      } else {
+        const email = prompt("Enter email:");
+        const password = prompt("Enter password:");
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return alert(error.message);
+        currentUser = data.user;
+      }
+      const { data } = await supabase.from("users").select("*").eq("id", currentUser.id).single();
+      currentRange = data?.diamond_range || "0-10K";
+    }
+    async function renderCalendar(dateStr) {
+      const userLevel = getRangeLevel(currentRange);
+      const userId = currentUser?.id;
+      const userTZ = currentUser?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const selected = new Date(dateStr);
+      const y = selected.getFullYear();
+      const m = selected.getMonth();
+      const monthKey = `${y}-${String(m + 1).padStart(2, "0")}`;
+      calendar.innerHTML = "";
+      ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+        const div = document.createElement("div");
+        div.className = "header";
+        div.textContent = d;
+        calendar.appendChild(div);
       });
+      const firstDay = new Date(y, m, 1).getDay();
+      const totalDays = new Date(y, m + 1, 0).getDate();
+      const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
+      const grouped = {};
+      data?.forEach(entry => {
+        const key = entry.date;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(entry);
+      });
+      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
+      for (let d = 1; d <= totalDays; d++) {
+        const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const cell = document.createElement("div");
+        cell.className = "day";
+        cell.textContent = d;
+        grouped[dateKey]?.forEach(e => {
+          const safeRange = e.diamond_range ?? "MISSING";
+          const tag = document.createElement("span");
+          tag.className = `tag ${getColor(userLevel, getRangeLevel(safeRange))}`;
+          tag.textContent = safeRange;
+          tag.onclick = () => {
+            const modal = document.createElement("div");
+            modal.className = "popup";
+            const start = new Date(`1970-01-01T${e.start_time}:00Z`);
+            const end = new Date(`1970-01-01T${e.end_time}:00Z`);
+            const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
+            let opts = "";
+            for (let t = new Date(start); t < end; t.setMinutes(t.getMinutes() + 30)) {
+              const iso = t.toISOString().substr(11,5);
+              const local = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: userTZ });
+              opts += `<option value="${iso}">${local}</option>`;
+            }
+            modal.innerHTML = `
+              <div class="popup-box" onclick="event.stopPropagation()">
+                <h3>@${e.tiktok_username || "Unknown"}</h3>
+                <p><strong>Date:</strong> ${e.date}</p>
+                <p><strong>Time:</strong> ${convertTime(e.start_time, userTZ)} - ${convertTime(e.end_time, userTZ)}</p>
+                <select id="timeDropdown">${opts}</select>
+                <p id="selectedTimeDisplay"></p>
+                <button id="confirmBtn">Confirm</button>
+              </div>`;
+            document.body.appendChild(modal);
+            modal.onclick = () => document.body.removeChild(modal);
+            setTimeout(() => {
+              document.getElementById("confirmBtn").onclick = async () => {
+                const selected_time = document.getElementById("timeDropdown").value;
+                document.getElementById("selectedTimeDisplay").textContent = `You selected: ${selected_time}`;
+                const { error } = await supabase.from("battles").insert([{
+                  requester_id: currentUser.id,
+                  recipient_id: e.user_id,
+                  date: e.date,
+                  time: selected_time,
+                  status: "pending",
+                  requester_timezone: userTZ,
+                  recipient_timezone: e.user_timezone || "N/A",
+                  requester_range: currentRange,
+                  recipient_range: safeRange,
+                  requester_username: requesterUsername,
+                  recipient_username: e.tiktok_username || "Unknown"
+                }]);
+                if (error) {
+                  alert("Failed: " + error.message);
+                } else {
+                  alert("Battle request sent!");
+                  document.body.removeChild(modal);
+                }
+              };
+            }, 100);
+          };
+          cell.appendChild(tag);
+        });
+        calendar.appendChild(cell);
+      }
     }
-
-    calendar.appendChild(cell);
-  }
-}
-
-monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
-generateMonthOptions();
-await loadUserAndSetupUI();
-renderCalendar(monthSelector.value);
-</script>
+    monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
+    generateMonthOptions();
+    await login();
+    renderCalendar(monthSelector.value);
+  </script>
 </body>
 </html>

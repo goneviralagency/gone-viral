@@ -198,7 +198,8 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   if (error) return alert("Error saving battle");
   alert("Battle requested!");
 }
-      document.getElementById("admin-panel").classList.remove("hidden");
+const adminPanel = document.getElementById("admin-panel");
+if (adminPanel) adminPanel.classList.remove("hidden");
 
     async function clearRestriction(uid) {
       const { error } = await client.auth.admin.updateUserById(uid, {
@@ -264,7 +265,8 @@ async function loadAdminPanel() {
     container.appendChild(div);
   }
 
-  document.getElementById("admin-panel").classList.remove("hidden");
+const adminPanel = document.getElementById("admin-panel");
+if (adminPanel) adminPanel.classList.remove("hidden");
 }
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -460,8 +462,8 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   if (error) return alert("Error saving battle");
   alert("Battle requested!");
 }
-      }
-      document.getElementById("admin-panel").classList.remove("hidden");
+const adminPanel = document.getElementById("admin-panel");
+if (adminPanel) adminPanel.classList.remove("hidden");
 
     async function clearRestriction(uid) {
       const { error } = await client.auth.admin.updateUserById(uid, {

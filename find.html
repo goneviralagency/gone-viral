@@ -311,11 +311,9 @@ setTimeout(() => {
       if (badge) {
         badge.style.display = "block";
         setTimeout(() => { badge.style.display = "none"; }, 3000);
+if (document.querySelector(".popup")) document.querySelector(".popup").remove();
 
 const popup = document.querySelector(".popup");
-if (popup) {
-  document.body.removeChild(popup);
-}
 
       }
       

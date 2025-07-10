@@ -119,8 +119,8 @@ function getRangeLevel(range) {
 
 function getColorClass(userLevel, oppLevel) {
   if (userLevel === oppLevel) return "green";
-  if (userLevel < oppLevel) return "orange";
-  return "red";
+  if (userLevel < oppLevel) return "red";
+  return "orange";
 }
 
 function convertToLocalTime(timeStr, timezone) {

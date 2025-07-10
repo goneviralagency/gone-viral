@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #f9f9f9, #f1f4f8);
+      color: #333;
+    }
+    .dashboard-wrapper {
+      max-width: 500px;
+      margin: 80px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #222;
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      background: #fefefe;
+    }
+    button {
+      width: 100%;
+      margin-top: 30px;
+      padding: 14px;
+      background: #007aff;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #005ddf;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-wrapper">
+  <h2 style="text-align:center; font-size: 1.5rem; letter-spacing: 1px; margin-top: 0;">DASHBOARD</h2>
+<details>
+  <summary style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; cursor: pointer;">Edit Profile</summary>
+    <h1>Edit Profile</h1>
+    <label for="tiktok">TikTok Username</label>
+    <input id="tiktok" placeholder="@username" />
+
+    <label for="range">Diamond Range</label>
+    <select id="range">
+      <option>0-10K</option>
+      <option>0-20K</option>
+      <option>20-50K</option>
+      <option>50-100K</option>
+      <option>100-200K</option>
+      <option>200K+</option>
+    </select>
+
+    <label for="timezone">Timezone</label>
+    <select id="timezone">
+      <option value="America/Toronto">America/Toronto</option>
+      <option value="America/Vancouver">America/Vancouver</option>
+      <option value="America/New_York">America/New_York</option>
+      <option value="America/Chicago">America/Chicago</option>
+      <option value="Europe/London">Europe/London</option>
+      <option value="Asia/Manila">Asia/Manila</option>
+    </select>
+
+    <label for="agency">Agency</label>
+    <input id="agency" placeholder="Agency name" />
+
+    </details>
+    <button onclick="saveDashboard()">Save</button>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient('https://dptolytfqrdzhvdlntfb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok');
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
+      if (data) {
+        document.getElementById('tiktok').value = data.tiktok_username || "";
+        document.getElementById('range').value = data.diamond_range || "0-10K";
+        document.getElementById('timezone').value = data.timezone || "America/Toronto";
+        document.getElementById('agency').value = data.agency || "";
+      }
+    }
+
+    window.saveDashboard = async function () {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const updates = {
+        tiktok_username: document.getElementById('tiktok').value,
+        diamond_range: document.getElementById('range').value,
+        timezone: document.getElementById('timezone').value,
+        agency: document.getElementById('agency').value
+      };
+      const { error } = await supabase.from('users').update(updates).eq('id', user.id);
+      if (error) alert("Update failed: " + error.message);
+      else alert("Profile updated successfully");
+    };
+
+    loadUser();
+  </script>
+</body>
+</html>

@@ -312,11 +312,8 @@ setTimeout(() => {
         badge.style.display = "block";
         setTimeout(() => { badge.style.display = "none"; }, 3000);
       }
-      
-if (document.querySelector(".popup")) {
-  document.body.removeChild(document.querySelector(".popup"));
-}
-
+      const popup = document.querySelector(".popup");
+      if (popup) popup.remove();
     }
   };
 }, 100);

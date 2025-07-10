@@ -194,8 +194,6 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         alert("You have been flagged due to 3+ cancellations.");
       } else {
         alert("Cancellation submitted.");
-      }
-    }
 
     async function loadAdminPanel() {
       const { data: { user } } = await client.auth.getUser();

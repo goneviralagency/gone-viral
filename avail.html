@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Availability Calendar</title>
+  <style>
+    body {
+  font-family: 'Inter', sans-serif;
+  background: #f9f9f9;
+  color: #222;
+  padding: 0;
+  margin: 0;
+}
+h1 {
+  font-size: 1.5rem;
+  margin: 90px 0 1rem 0;
+  color: #222;
+}
+#calendar {
+  margin-top: 20px;
+}
+select, button {
+  font-size: 1rem;
+  border-radius: 12px;
+}
+button {
+  cursor: pointer;
+  font-weight: bold;
+}
+#monthSelector {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 10px;
+}
+    h1 {
+      margin-top: 20px;
+    }
+    #monthSelector {
+      margin-bottom: 20px;
+      padding: 5px;
+    }
+    #calendar {
+  margin-top: 80px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      max-width: 800px;
+      margin: auto;
+      gap: 5px;
+    }
+    .day {
+      background: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .header {
+      font-weight: bold;
+      background: #ddd;
+    }
+    .booked {
+      background: #a3eaa3 !important;
+    }
+  
+.menu {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  max-width: 800px;
+  background: #000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 16px;
+  box-sizing: border-box;
+  z-index: 999;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.hamburger {
+  width: 30px;
+  cursor: pointer;
+}
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 4px;
+  background: white;
+  margin: 5px 0;
+  border-radius: 2px;
+}
+.nav-drawer {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #1e1e1e;
+  padding: 1rem;
+  display: none;
+  z-index: 999;
+}
+.nav-drawer a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  margin: 1rem 0;
+}
+.nav-drawer.show {
+  display: block;
+}
+
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f9f9f9;
+  color: #222;
+  padding: 0;
+  margin: 0;
+}
+h1 {
+  font-size: 1.5rem;
+  margin: 90px 0 1rem 0;
+  color: #222;
+}
+#calendar {
+  margin-top: 20px;
+}
+select, button {
+  font-size: 1rem;
+  border-radius: 12px;
+}
+button {
+  cursor: pointer;
+  font-weight: bold;
+}
+#monthSelector {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 10px;
+}
+h1 {
+  font-size: 1.5rem;
+  margin: 90px 0 1rem 0;
+}
+#calendar {
+  margin-top: 20px;
+}
+select, button {
+  font-size: 1rem;
+  border-radius: 12px;
+}
+button {
+  cursor: pointer;
+  font-weight: bold;
+}
+#monthSelector {
+  background: #222;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="menu">
+  <h3 style="color:white;">Gone Viral Battle App</h3>
+  <div class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+<div id="nav" class="nav-drawer">
+  <a href="index.html">Home</a>
+  <a href="#" onclick="logout()">Log Out</a>
+</div>
+
+
+<div class="container">
+<h1>Choose Your Availability</h1>
+<select id="monthSelector"></select>
+<div id="calendar"></div>
+<button id="clear-all" style="margin-top:20px;margin-right:10px;padding:10px 20px;background:red;color:white;">Clear All</button>
+<button id="save-all" style="margin-top:20px;padding:10px 20px;background:green;color:white;">Save All</button>
+
+</div>
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(
+  'https://dptolytfqrdzhvdlntfb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTk3NTMwOSwiZXhwIjoyMDY3NTUxMzA5fQ.BSOl-XaUCSIHDsajNy5QgFr-1WOkruTrNTlyMRinbII'
+);
+
+const calendar = document.getElementById("calendar");
+const monthSelector = document.getElementById("monthSelector");
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function generateMonthOptions() {
+  const now = new Date();
+  for (let i = -3; i <= 3; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const option = document.createElement("option");
+    option.value = date.toISOString();
+    option.text = date.toLocaleString("default", { month: "long", year: "numeric" });
+    if (i === 0) option.selected = true;
+    monthSelector.appendChild(option);
+  }
+}
+
+async function renderCalendar(dateStr) {
+  const userId = localStorage.getItem("gv_user_id");
+  if (!userId) return alert("User not logged in");
+
+  const selectedDate = new Date(dateStr);
+  const year = selectedDate.getFullYear();
+  const month = selectedDate.getMonth();
+
+  calendar.innerHTML = "";
+  weekdays.forEach(day => {
+    const header = document.createElement("div");
+    header.className = "header";
+    header.textContent = day;
+    calendar.appendChild(header);
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const { data: bookedDates } = await supabase
+    .from("availability")
+    .select("*")
+    .eq("month", `${year}-${String(month + 1).padStart(2, "0")}`)
+    .eq("user_id", userId);
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement("div");
+    calendar.appendChild(empty);
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const cell = document.createElement("div");
+    cell.className = "day";
+    const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    cell.textContent = day;
+
+    if (bookedDates && bookedDates.some(d => d.date === dateISO)) {
+      cell.classList.add("booked");
+    }
+
+    cell.onclick = async () => {
+      const modal = document.createElement("div");
+      modal.style.position = "fixed";
+      modal.style.top = 0;
+      modal.style.left = 0;
+      modal.style.width = "100%";
+      modal.style.height = "100%";
+      modal.style.background = "rgba(0,0,0,0.8)";
+      modal.style.display = "flex";
+      modal.style.alignItems = "center";
+      modal.style.justifyContent = "center";
+      modal.style.zIndex = 1000;
+
+      const box = document.createElement("div");
+      box.style.background = "white";
+      box.style.padding = "20px";
+      box.style.borderRadius = "12px";
+      box.style.textAlign = "center";
+
+      box.innerHTML = [
+        '<h3>Select Time Range</h3>',
+        '<select id="start-time" style="margin:10px;padding:10px;"></select>',
+        '<select id="end-time" style="margin:10px;padding:10px;"></select>',
+        '<br/>',
+        '<button id="submit-time" style="padding:10px 20px;margin-top:10px;">Submit</button>'
+      ].join("");
+
+      modal.appendChild(box);
+      document.body.appendChild(modal);
+
+      const startTime = box.querySelector("#start-time");
+      const endTime = box.querySelector("#end-time");
+
+      for (let h = 9; h <= 22; h++) {
+        for (let m = 0; m < 60; m += 30) {
+          const time = ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2);
+          const label = (h > 12 ? h - 12 : h) + ":" + ("0" + m).slice(-2) + (h >= 12 ? " PM" : " AM");
+          const option = new Option(label, time);
+          startTime.add(option.cloneNode(true));
+          endTime.add(option.cloneNode(true));
+        }
+      }
+      endTime.add(new Option("11:00 PM", "23:00"));
+
+      box.querySelector("#submit-time").onclick = async () => {
+        const start = startTime.value;
+        const end = endTime.value;
+
+        const { data: userData } = await supabase.auth.getUser();
+        const timezone = userData.user?.user_metadata?.timezone || "UTC";
+
+        // Diamond Range Popup
+        const diamondModal = document.createElement("div");
+        diamondModal.style.position = "fixed";
+        diamondModal.style.top = 0;
+        diamondModal.style.left = 0;
+        diamondModal.style.width = "100%";
+        diamondModal.style.height = "100%";
+        diamondModal.style.background = "rgba(0,0,0,0.8)";
+        diamondModal.style.display = "flex";
+        diamondModal.style.alignItems = "center";
+        diamondModal.style.justifyContent = "center";
+        diamondModal.style.zIndex = 1001;
+
+        const diamondBox = document.createElement("div");
+        diamondBox.style.background = "white";
+        diamondBox.style.padding = "20px";
+        diamondBox.style.borderRadius = "12px";
+        diamondBox.style.textAlign = "center";
+
+        diamondBox.innerHTML = "<h3>Select Diamond Range</h3>";
+
+        const selectDiamond = document.createElement("select");
+        selectDiamond.style.margin = "10px";
+        selectDiamond.style.padding = "10px";
+        ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"].forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.textContent = opt;
+          selectDiamond.appendChild(option);
+        });
+
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "Confirm";
+        confirmBtn.style.padding = "10px 20px";
+        confirmBtn.style.marginTop = "10px";
+
+        confirmBtn.onclick = async () => {
+          const diamond_range = selectDiamond.value;
+
+          savedAvailabilities.push({
+            date: dateISO,
+            month: `${year}-${String(month + 1).padStart(2, '0')}`,
+            start_time: start,
+            end_time: end,
+            diamond_range,
+            timezone
+          });
+
+          await supabase.from("availability").upsert({
+            user_id: userId,
+            date: dateISO,
+            month: `${year}-${String(month + 1).padStart(2, "0")}`,
+            start_time: start,
+            end_time: end,
+            diamond_range,
+            timezone
+          });
+
+          cell.classList.add("booked");
+          document.body.removeChild(diamondModal);
+          document.body.removeChild(modal);
+
+          alert(`Saved:
+${dateISO}
+${start} - ${end}
+Diamond Range: ${diamond_range}
+Timezone: ${timezone}`);
+        };
+
+        diamondBox.appendChild(selectDiamond);
+        diamondBox.appendChild(confirmBtn);
+        diamondModal.appendChild(diamondBox);
+        document.body.appendChild(diamondModal);
+      };
+    };
+
+    calendar.appendChild(cell);
+  }
+}
+
+monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
+generateMonthOptions();
+renderCalendar(monthSelector.value);
+
+const savedAvailabilities = [];
+
+document.getElementById("save-all").addEventListener("click", async () => {
+  if (savedAvailabilities.length === 0) {
+    alert("No availability selected.");
+    return;
+  }
+
+  const userId = localStorage.getItem("gv_user_id");
+  if (!userId) return alert("User not logged in.");
+
+  const inserts = savedAvailabilities.map(entry => ({
+    user_id: userId,
+    date: entry.date,
+    month: entry.month,
+    start_time: entry.start_time,
+    end_time: entry.end_time
+  }));
+
+  const { error } = await supabase.from("availability").upsert(inserts);
+  if (error) return alert("Failed to save: " + error.message);
+
+  const summary = savedAvailabilities.map(a =>
+    `${a.date}: ${a.start_time} - ${a.end_time}`).join("\n");
+  alert("Saved Availability:\n" + summary);
+});
+
+
+document.getElementById("clear-all").addEventListener("click", async () => {
+  const userId = localStorage.getItem("gv_user_id");
+  if (!userId) return alert("User not logged in.");
+  const selectedDate = new Date(document.getElementById("monthSelector").value);
+  const month = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}`;
+  const confirmed = confirm("This will remove all availability for " + month + ". Continue?");
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("availability")
+    .delete()
+    .eq("user_id", userId)
+    .eq("month", month);
+
+  if (error) return alert("Failed to clear: " + error.message);
+  alert("All availability cleared for " + month);
+  renderCalendar(document.getElementById("monthSelector").value);
+});
+
+
+window.toggleMenu = () => {
+  document.getElementById('nav').classList.toggle('show');
+};
+window.logout = async () => {
+  await supabase.auth.signOut();
+  alert("Logged out");
+  location.href = "index.html";
+};
+
+</script>
+
+</body>
+</html>

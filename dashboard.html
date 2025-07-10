@@ -208,10 +208,13 @@
     };
 
     window.window.declineBattle = async function (id) {
-      const reason = prompt("Please provide a reason for declining this battle:");
-      if (reason === null) return;
-      await supabase.from("battles").delete().eq("id", id);
-      loadBattleRequests();
+  const reason = prompt("Please provide a reason for declining this battle:");
+  if (reason === null) return;
+  await supabase.from("battles").delete().eq("id", id);
+  alert("Request has been declined.");
+  loadBattleRequests();
+  loadScheduledBattles();
+
     };
 
     loadUser();

@@ -186,11 +186,7 @@ async function loadUserAndSetupUI() {
     }
   };
 
-  const top = document.querySelector(".container");
-  top.insertBefore(document.createTextNode("Your Diamond Range:"), monthSelector);
-  top.insertBefore(selector, monthSelector);
-  top.insertBefore(saveBtn, monthSelector);
-  top.insertBefore(document.createElement("br"), monthSelector);
+  const wrapper = document.getElementById("diamondRangeWrapper"); wrapper.appendChild(selector); wrapper.appendChild(saveBtn);
 }
 
 async function renderCalendar(dateStr) {
@@ -301,7 +297,7 @@ setTimeout(() => {
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
 await loadUserAndSetupUI();
-renderCalendar(monthSelector.value);
+if (currentUser?.id) { renderCalendar(monthSelector.value); }
 </script>
 </body>
 </html>

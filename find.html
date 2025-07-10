@@ -215,16 +215,11 @@ async function renderCalendar(dateStr) {
   const totalDays = new Date(year, month + 1, 0).getDate();
 
   
-let availabilityQuery = supabase
+const { data, error } = await supabase
   .from("availability_with_user")
-  .select("*")
-  .eq("month", monthKey);
+  .select("*");
+console.log("Unfiltered data from view:", data, error);
 
-if (currentUser?.id) {
-  availabilityQuery = availabilityQuery.neq("user_id", currentUser.id);
-}
-
-const { data, error } = await availabilityQuery;
 console.log("Fetched availability:", data, "Error:", error);
 if (!data || data.length === 0) {
   const info = document.createElement("p");

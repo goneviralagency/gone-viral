@@ -157,7 +157,7 @@
         data.forEach(battle => {
           const div = document.createElement("div");
           div.className = "battle-request";
-          div.innerHTML = `
+          div.innerHTML = '
             <h4>@${battle.requester_username}</h4>
             <p>Date: ${battle.date}</p>
             <p>Time: ${battle.time}</p>
@@ -165,7 +165,7 @@
             <p>Diamond Range: ${battle.requester_range}</p>
             <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')">CONFIRM</button>
             <button onclick="declineBattle(${battle.id})" style="background:#dc3545;">DECLINE</button>
-          `;
+          ';
           container.appendChild(div);
         });
       } else {
@@ -186,13 +186,13 @@
         data.forEach(battle => {
           const div = document.createElement("div");
           div.className = "battle-request";
-          div.innerHTML = `
+          div.innerHTML = '
             <h4>@${battle.requester_username}</h4>
             <p>Date: ${battle.date}</p>
             <p>Time: ${battle.time}</p>
             <p>Timezone: ${battle.requester_timezone}</p>
             <p>Diamond Range: ${battle.requester_range}</p>
-          `;
+          ';
           container.appendChild(div);
         });
       } else {

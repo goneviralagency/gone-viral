@@ -174,7 +174,8 @@ async function renderCalendar(dateStr) {
         const level = getRangeLevel(e.diamond_range);
         const colorClass = getColorClass(userLevel, level);
         tag.className = `tag ${colorClass}`;
-        tag.textContent = e.diamond_range;
+        console.log("Diamond Range for", e.user_id, "=", e.diamond_range);
+        tag.textContent = e.diamond_range || "Unknown";
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";

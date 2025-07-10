@@ -95,18 +95,38 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadAvailabilityForm() {
   console.log('[DEBUG] Loading Availability Form...');
-      const form = document.getElementById("availability-form");
-      const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-      form.innerHTML = days.map(day => `
-        <div class="grid grid-cols-3 gap-2 items-center">
-          <input type="hidden" name="day" value="${day}">
-          <input type="time" name="start-${day}" class="p-1 bg-gray-800 rounded"/>
-          <input type="time" name="end-${day}" class="p-1 bg-gray-800 rounded"/>
-        </div>`).join("") + `<button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-500 p-2 rounded w-full">Save Availability</button>`;
+  const form = document.getElementById("availability-form");
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  form.innerHTML = days.map(day => `
+    <div class="grid grid-cols-3 gap-2 items-center">
+      <input type="hidden" name="day" value="${day}">
+      <input type="time" name="start-${day}" class="p-1 bg-gray-800 rounded"/>
+      <input type="time" name="end-${day}" class="p-1 bg-gray-800 rounded"/>
+    </div>`).join("") + `<button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-500 p-2 rounded w-full">Save Availability</button>`;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return alert("Not logged in");
+
+    const timezone = user.user_metadata?.timezone || "UTC";
+    for (let day of days) {
+      const start = form.querySelector(`[name=start-${day}]`).value;
+      const end = form.querySelector(`[name=end-${day}]`).value;
+      if (start && end) {
+        await client.from("availability").insert({
+          user_id: user.id,
+          day_of_week: day,
+          start_time: start,
+          end_time: end,
+          timezone
+        });
+      }
     }
 
-    
-        }
+    alert("Availability saved!");
+  });
+}
       }
 
       alert("Availability saved!");
@@ -155,40 +175,24 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       return "red";
     }
 
-    async function requestBattle(...args) {
-  console.log('[DEBUG] Requesting Battle with:', args);opponentId, day, start, end, timezone) {
-      const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
-      if (!confirmed) return;
-      const { data: { user } } = await client.auth.getUser();
-      const scheduledTime = new Date();
-      scheduledTime.setHours(parseInt(start.split(":")[0]));
-      scheduledTime.setMinutes(parseInt(start.split(":")[1]));
-      const { error } = await client.from("battles").insert({
-        creator_a_id: user.id,
-        creator_b_id: opponentId,
-        scheduled_at: scheduledTime.toISOString(),
-        timezone,
-        battle_confirmed_by_both: false
-      });
-      if (error) return alert("Error saving battle");
-      alert("Battle requested!");
-    }
-
-    async function cancelBattle() {
-      const battleId = document.getElementById("cancel-battle-id").value;
-      const reason = document.getElementById("cancel-reason").value;
-      const { data: { user } } = await client.auth.getUser();
-      const { error } = await client.from("cancellations").insert({
-        user_id: user.id,
-        battle_id: battleId,
-        reason
-      });
-      if (error) return alert("Failed to cancel.");
-      const { data: cancels } = await client.from("cancellations").select("*").eq("user_id", user.id);
-      if (cancels.length >= 3) {
-        await client.auth.admin.updateUserById(user.id, {
-          user_metadata: { ...user.user_metadata, restricted: true }
-        });
+    async function requestBattle(opponentId, day, start, end, timezone) {
+  console.log('[DEBUG] Requesting Battle with:', opponentId, day, start, end, timezone);
+  const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
+  if (!confirmed) return;
+  const { data: { user } } = await client.auth.getUser();
+  const scheduledTime = new Date();
+  scheduledTime.setHours(parseInt(start.split(":")[0]));
+  scheduledTime.setMinutes(parseInt(start.split(":")[1]));
+  const { error } = await client.from("battles").insert({
+    creator_a_id: user.id,
+    creator_b_id: opponentId,
+    scheduled_at: scheduledTime.toISOString(),
+    timezone,
+    battle_confirmed_by_both: false
+  });
+  if (error) return alert("Error saving battle");
+  alert("Battle requested!");
+});
         alert("You have been flagged due to 3+ cancellations.");
       } else {
         alert("Cancellation submitted.");

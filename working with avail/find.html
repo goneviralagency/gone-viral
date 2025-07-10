@@ -285,8 +285,8 @@ async function renderCalendar(dateStr) {
           requester_username: requesterUsername,
           recipient_username: e.tiktok_username || "Unknown",
           requester_agency: requesterAgency,
-          recipient_agency: e.agency || "N/A",
-  requester_confirm: "confirmed"}]);
+          recipient_agency: e.agency || "N/A"
+        }]);
 
         const badge = document.getElementById("confirmationBadge");
         if (badge) {

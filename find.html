@@ -97,6 +97,7 @@
 
 
 
+
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
@@ -111,7 +112,6 @@ const monthSelector = document.getElementById("monthSelector");
 
 let currentUser = null;
 let currentRange = "0-10K";
-let filterRanges = [...levels];
 
 function getRangeLevel(range) {
   return levels.indexOf(range);
@@ -144,11 +144,12 @@ function generateMonthOptions() {
   }
 }
 
-async function loadUser() {
+async function loadUserAndSetupUI() {
   const { data: { user } } = await supabase.auth.getUser();
   currentUser = user;
   const userId = user?.id;
-  const { data, error } = await supabase.from("users").select("diamond_range").eq("id", userId).single();
+
+  const { data } = await supabase.from("users").select("diamond_range").eq("id", userId).single();
   currentRange = data?.diamond_range || "0-10K";
 
   const selector = document.createElement("select");
@@ -172,31 +173,11 @@ async function loadUser() {
     }
   };
 
-  const filterBox = document.createElement("div");
-  filterBox.id = "filterBox";
-  levels.forEach(lvl => {
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.value = lvl;
-    cb.checked = true;
-    cb.onchange = () => {
-      filterRanges = levels.filter(l => document.querySelector(`input[value='${l}']`).checked);
-      renderCalendar(monthSelector.value);
-    };
-    const label = document.createElement("label");
-    label.style.marginRight = "10px";
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(" " + lvl));
-    filterBox.appendChild(label);
-  });
-
   const top = document.querySelector(".container");
   top.insertBefore(document.createTextNode("Your Diamond Range:"), monthSelector);
   top.insertBefore(selector, monthSelector);
   top.insertBefore(saveBtn, monthSelector);
   top.insertBefore(document.createElement("br"), monthSelector);
-  top.insertBefore(document.createTextNode("Filter Diamond Ranges:"), monthSelector);
-  top.insertBefore(filterBox, monthSelector);
 }
 
 async function renderCalendar(dateStr) {
@@ -223,8 +204,9 @@ async function renderCalendar(dateStr) {
   const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
-    if (!grouped[entry.date]) grouped[entry.date] = [];
-    grouped[entry.date].push(entry);
+    const key = entry.date;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
   });
 
   for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
@@ -238,12 +220,13 @@ async function renderCalendar(dateStr) {
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
         const safeRange = e.diamond_range || "0-10K";
-        if (!filterRanges.includes(safeRange)) return;
         const oppLevel = getRangeLevel(safeRange);
         const colorClass = getColorClass(userLevel, oppLevel);
+
         const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;
         tag.textContent = safeRange;
+
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
@@ -251,7 +234,7 @@ async function renderCalendar(dateStr) {
             <div class="popup-box">
               <h3>@${e.tiktok_username || "Unknown"}</h3>
               <p><strong>Diamond Range:</strong> ${safeRange}</p>
-              <p><strong>Timezone:</strong> ${e.timezone}</p>
+              <p><strong>Timezone:</strong> ${e.timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
               <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
               <button onclick="alert('Request Sent!')">REQUEST</button>
@@ -259,6 +242,7 @@ async function renderCalendar(dateStr) {
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };
+
         cell.appendChild(tag);
       });
     }
@@ -269,9 +253,10 @@ async function renderCalendar(dateStr) {
 
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
-await loadUser();
+await loadUserAndSetupUI();
 renderCalendar(monthSelector.value);
 </script>
+
 
 
 </body>

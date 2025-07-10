@@ -313,18 +313,16 @@ setTimeout(() => {
         setTimeout(() => { badge.style.display = "none"; }, 3000);
       }
       
-const popup = document.querySelector(".popup");
-if (popup) {
-  document.body.removeChild(popup);
+if (document.querySelector(".popup")) {
+  document.body.removeChild(document.querySelector(".popup"));
 }
 
     }
   };
 }, 100);
           modal.onclick = () => 
-const popup = document.querySelector(".popup");
-if (popup) {
-  document.body.removeChild(popup);
+if (document.querySelector(".popup")) {
+  document.body.removeChild(document.querySelector(".popup"));
 }
 
           document.body.appendChild(modal);

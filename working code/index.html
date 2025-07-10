@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gone Viral Auth Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script type="module">
+    const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok';
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function signup() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const name = document.getElementById("signup-name").value;
+      const username = document.getElementById("signup-tiktok").value;
+      const timezone = document.getElementById("signup-timezone").value;
+      const range = document.getElementById("signup-range").value;
+      const agency = document.getElementById("signup-agency").value;
+
+      const { error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            tiktok_username: username,
+            timezone,
+            diamond_range: range,
+            agency
+          }
+        }
+      });
+
+      if (error) {
+        alert("Signup error: " + error.message);
+      } else {
+        alert("Signup successful. You can now log in.");
+      }
+    }
+
+async function resetPassword() {
+  const email = prompt("Enter your email to receive a reset link:");
+  const { error } = await client.auth.resetPasswordForEmail(email);
+  if (error) alert("Reset failed: " + error.message);
+  else alert("Password reset email sent.");
+}
+
+    async function login() {
+  const email = document.getElementById("login-email")?.value;
+  const password = document.getElementById("login-password")?.value;
+  if (!email || !password) return alert("Please enter both email and password.");
+  console.log("LOGIN ATTEMPT:", email, password);
+
+      const { error } = await client.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alert("Login error: " + error.message);
+      } else {
+        alert("Login successful!");
+        loadDashboard();
+      }
+    }
+
+    async function loadDashboard() {
+  const dashboard = document.getElementById('dashboard');
+  if (dashboard) dashboard.classList.add('hidden');
+      const { data: { user } } = await client.auth.getUser();
+  if (!user) return;
+
+      document.getElementById("dashboard").classList.remove("hidden");
+      document.getElementById("dashboard-name").innerText = user.user_metadata?.name || "No name";
+      document.getElementById("dashboard-email").innerText = user.email;
+      document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
+      document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
+    }
+
+    window.onload = async () => {
+  document.getElementById('dashboard')?.classList.add('hidden');
+      const { data: { session } } = await client.auth.getSession();
+  if (session && session.user) loadDashboard();
+    };
+
+    window.signup = signup;
+    window.login = login;
+async function logout() {
+  await client.auth.signOut();
+  alert("Logged out");
+  location.reload();
+}
+window.resetPassword = resetPassword;
+window.logout = logout;
+  </script>
+</head>
+<body style="font-family:sans-serif; padding: 2rem">
+  <h1>Gone Viral: Auth Test</h1>
+
+  <h2>Signup</h2>
+  <input id="signup-name" placeholder="Full Name"/><br/>
+  <input id="signup-tiktok" placeholder="TikTok Username"/><br/>
+  <input id="signup-email" placeholder="Email"/><br/>
+  <input id="signup-password" type="password" placeholder="Password"/><br/>
+<select id="signup-timezone">
+<optgroup label="CA">
+  <option value="America/Vancouver">America/Vancouver</option>
+  <option value="America/Edmonton">America/Edmonton</option>
+  <option value="America/Winnipeg">America/Winnipeg</option>
+  <option value="America/Toronto">America/Toronto</option>
+  <option value="America/Halifax">America/Halifax</option>
+  <option value="America/St_Johns">America/St_Johns</option>
+</optgroup>
+<optgroup label="US">
+  <option value="America/Los_Angeles">America/Los_Angeles</option>
+  <option value="America/Denver">America/Denver</option>
+  <option value="America/Chicago">America/Chicago</option>
+  <option value="America/New_York">America/New_York</option>
+  <option value="America/Phoenix">America/Phoenix</option>
+  <option value="America/Anchorage">America/Anchorage</option>
+  <option value="Pacific/Honolulu">Pacific/Honolulu</option>
+</optgroup>
+<optgroup label="AUS">
+  <option value="Australia/Sydney">Australia/Sydney</option>
+  <option value="Australia/Melbourne">Australia/Melbourne</option>
+  <option value="Australia/Brisbane">Australia/Brisbane</option>
+  <option value="Australia/Perth">Australia/Perth</option>
+  <option value="Australia/Adelaide">Australia/Adelaide</option>
+  <option value="Australia/Hobart">Australia/Hobart</option>
+</optgroup>
+<optgroup label="UK">
+  <option value="Europe/London">Europe/London</option>
+</optgroup>
+<optgroup label="PH">
+  <option value="Asia/Manila">Asia/Manila</option>
+</optgroup>
+<optgroup label="Latin America">
+  <option value="America/Mexico_City">America/Mexico_City</option>
+  <option value="America/Bogota">America/Bogota</option>
+  <option value="America/Lima">America/Lima</option>
+  <option value="America/Santiago">America/Santiago</option>
+  <option value="America/Argentina/Buenos_Aires">America/Argentina/Buenos_Aires</option>
+  <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+</optgroup>
+</select>
+  <select id="signup-range">
+    <option value="0-5K">0-5K</option>
+    <option value="0-10K">0-10K</option>
+    <option value="0-20K">0-20K</option>
+    <option value="20-50K">20-50K</option>
+    <option value="50-100K">50-100K</option>
+    <option value="100-200K">100-200K</option>
+    <option value="200K+">200K+</option>
+  </select><br/>
+  <input id="signup-agency" placeholder="Agency (optional)"/><br/>
+  <button onclick="signup()">Sign Up</button>
+
+  <h2>Login</h2>
+  <input id="login-email" placeholder="Email"/><br/>
+  <input id="login-password" type="password" placeholder="Password"/><br/>
+  <button onclick="login()">Log In</button>
+<p><a href="#" onclick="resetPassword()" style="color:lightblue;">Forgot Password?</a></p>
+<button onclick="resetPassword()">Forgot Password?</button>
+
+  <div id="dashboard" class="hidden" style="margin-top:2rem;">
+    <h2>Dashboard</h2>
+<button onclick="logout()">Log Out</button>
+    <p>Name: <span id="dashboard-name"></span></p>
+    <p>Email: <span id="dashboard-email"></span></p>
+    <p>Username: <span id="dashboard-username"></span></p>
+    <p>Range: <span id="dashboard-range"></span></p>
+  </div>
+</body>
+</html>

@@ -96,7 +96,7 @@
     <button onclick="cancelBattle()" class="w-full bg-red-700 hover:bg-red-600 p-2 rounded">Submit Cancellation</button>
   </div>
 
-  <!-- Admin Panel -->
+  <!-- Admin Panel (UI now secured through backend call) -->
   <div id="admin-panel" class="hidden mt-6">
     <h2 class="text-xl font-bold mb-2">Admin Panel</h2>
     <div id="admin-user-list" class="space-y-2"></div>
@@ -104,7 +104,7 @@
 
   <script>
 const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.client.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key-here';  // Replace this with your actual anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok';  // Replace this with your actual anon key
     const { createClient } = supabase;
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -303,7 +303,27 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
     }
 
-    async function loadAdminPanel() {
+    async // Admin panel now powered by secure backend
+function loadAdminPanel() {
+  fetch('/.netlify/functions/get-users')
+    .then(res => res.json())
+    .then(users => {
+      const container = document.getElementById("admin-user-list");
+      container.innerHTML = "";
+      users.forEach(u => {
+        const meta = u.user_metadata || {};
+        const div = document.createElement("div");
+        div.className = "bg-gray-800 p-2 rounded";
+        div.innerHTML = `
+          <p>Email: ${u.email}</p>
+          <p>Username: ${meta?.tiktok_username || "N/A"}</p>
+          <p>Restricted: ${meta?.restricted ? "✅" : "❌"}</p>
+        `;
+        container.appendChild(div);
+      });
+      document.getElementById("admin-panel").classList.remove("hidden");
+    });
+}
       const { data: { user } } = await client.auth.getUser();
       if (!user || user.email !== "admin@goneviral.com") return;
       const { data: users } = await client.auth.admin.listUsers();

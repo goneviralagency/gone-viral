@@ -312,25 +312,45 @@ async function renderCalendar(dateStr) {
         const { data: userData } = await supabase.auth.getUser();
         const timezone = userData.user?.user_metadata?.timezone || "UTC";
 
-        // Create and populate diamond range dropdown
-        const diamondOptions = ["0-5K", "5K-20K", "20K+"];
+        // Diamond range popup
+        const diamondModal = document.createElement("div");
+        diamondModal.style.position = "fixed";
+        diamondModal.style.top = 0;
+        diamondModal.style.left = 0;
+        diamondModal.style.width = "100%";
+        diamondModal.style.height = "100%";
+        diamondModal.style.background = "rgba(0,0,0,0.8)";
+        diamondModal.style.display = "flex";
+        diamondModal.style.alignItems = "center";
+        diamondModal.style.justifyContent = "center";
+        diamondModal.style.zIndex = 1001;
+
+        const diamondBox = document.createElement("div");
+        diamondBox.style.background = "white";
+        diamondBox.style.padding = "20px";
+        diamondBox.style.borderRadius = "12px";
+        diamondBox.style.textAlign = "center";
+
+        diamondBox.innerHTML = "<h3>Select Diamond Range</h3>";
+
         const selectDiamond = document.createElement("select");
-        selectDiamond.style.marginTop = "10px";
+        selectDiamond.style.margin = "10px";
         selectDiamond.style.padding = "10px";
-        diamondOptions.forEach(opt => {
+        ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"].forEach(opt => {
           const option = document.createElement("option");
           option.value = opt;
           option.textContent = opt;
           selectDiamond.appendChild(option);
         });
-        box.appendChild(selectDiamond);
 
-        const confirmButton = document.createElement("button");
-        confirmButton.textContent = "Confirm";
-        confirmButton.style.marginTop = "10px";
-        confirmButton.style.padding = "10px 20px";
-        confirmButton.onclick = async () => {
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "Confirm";
+        confirmBtn.style.padding = "10px 20px";
+        confirmBtn.style.marginTop = "10px";
+
+        confirmBtn.onclick = async () => {
           const diamond_range = selectDiamond.value;
+
           savedAvailabilities.push({
             date: dateISO,
             month: `${year}-${String(month + 1).padStart(2, '0')}`,
@@ -351,10 +371,19 @@ async function renderCalendar(dateStr) {
           });
 
           cell.classList.add("booked");
+          document.body.removeChild(diamondModal);
           document.body.removeChild(modal);
+
+          alert("Saved: " + dateISO + "
+" + start + " - " + end + "
+Diamond Range: " + diamond_range + "
+Timezone: " + timezone);
         };
 
-        box.appendChild(confirmButton);
+        diamondBox.appendChild(selectDiamond);
+        diamondBox.appendChild(confirmBtn);
+        diamondModal.appendChild(diamondBox);
+        document.body.appendChild(diamondModal);
       };
     };
 

@@ -408,14 +408,12 @@ document.getElementById("save-all").addEventListener("click", async () => {
   if (!userId) return alert("User not logged in.");
 
   const inserts = savedAvailabilities.map(entry => ({
-  user_id: userId,
-  date: entry.date,
-  month: entry.month,
-  start_time: entry.start_time,
-  end_time: entry.end_time,
-  diamond_range: entry.diamond_range,
-  timezone: entry.timezone
-}));
+    user_id: userId,
+    date: entry.date,
+    month: entry.month,
+    start_time: entry.start_time,
+    end_time: entry.end_time
+  }));
 
   const { error } = await supabase.from("availability").upsert(inserts);
   if (error) return alert("Failed to save: " + error.message);

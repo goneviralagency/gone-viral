@@ -6,7 +6,8 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
     let currentUser = null;
 
-    async function loadDashboard() {
+    console.debug('▶ loadDashboard called');
+async function loadDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return alert("Not logged in");
       currentUser = user;
@@ -14,15 +15,17 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
       loadScheduledBattles();
     }
 
-    async function loadIncomingBattles() {
+    console.debug('▶ loadIncomingBattles called');
+async function loadIncomingBattles() {
       const container = document.getElementById("incoming");
       container.innerHTML = "";
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("battles")
         .select("*")
         .eq("recipient_id", currentUser.id)
         .eq("recipient_confirm", "pending")
         .eq("status", "Request Sent");
+console.debug("📥 Incoming battles:", { data, error });
 
       if (!data || data.length === 0) {
         container.innerHTML = "<p>No incoming battles.</p>";
@@ -43,14 +46,16 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
       });
     }
 
-    async function loadScheduledBattles() {
+    console.debug('▶ loadScheduledBattles called');
+async function loadScheduledBattles() {
       const container = document.getElementById("scheduled");
       container.innerHTML = "";
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("battles")
         .select("*")
         .eq("recipient_id", currentUser.id)
         .eq("recipient_confirm", "confirmed");
+console.debug("📅 Scheduled battles:", { data, error });
 
       if (!data || data.length === 0) {
         container.innerHTML = "<p>No scheduled battles.</p>";
@@ -70,20 +75,25 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
       });
     }
 
-    window.acceptBattle = async function(id, date, start_time) {
+    console.debug('🟢 acceptBattle wired');
+window.acceptBattle = async function(id, date, start_time) {
       await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
       alert("Battle confirmed!");
-      loadDashboard();
+      console.debug('🚀 Initial loadDashboard call');
+loadDashboard();
     }
 
-    window.declineBattle = async function(id, date, start_time) {
+    console.debug('🔴 declineBattle wired');
+window.declineBattle = async function(id, date, start_time) {
       await supabase.from("battles").delete().eq("id", id);
       await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
       alert("Battle declined and availability restored.");
-      loadDashboard();
+      console.debug('🚀 Initial loadDashboard call');
+loadDashboard();
     }
 
-    window.cancelBattle = async function(id, date, start_time, opponent_id) {
+    console.debug('🟡 cancelBattle wired');
+window.cancelBattle = async function(id, date, start_time, opponent_id) {
       await supabase.from("battles").delete().eq("id", id);
       await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
       await supabase.from("notifications").insert({
@@ -91,8 +101,10 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
         message: "Your scheduled battle has been cancelled."
       });
       alert("Battle cancelled.");
-      loadDashboard();
+      console.debug('🚀 Initial loadDashboard call');
+loadDashboard();
     }
 
-    loadDashboard();
+    console.debug('🚀 Initial loadDashboard call');
+loadDashboard();
     setInterval(loadDashboard, 60000);

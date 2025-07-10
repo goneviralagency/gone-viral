@@ -162,6 +162,13 @@ button {
   border-radius: 10px;
 }
 
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
 </style>
 </head>
 <body>
@@ -178,12 +185,14 @@ button {
 </div>
 
 
+<div class="container">
 <h1>Choose Your Availability</h1>
 <select id="monthSelector"></select>
 <div id="calendar"></div>
 <button id="clear-all" style="margin-top:20px;margin-right:10px;padding:10px 20px;background:red;color:white;">Clear All</button>
 <button id="save-all" style="margin-top:20px;padding:10px 20px;background:green;color:white;">Save All</button>
 
+</div>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(

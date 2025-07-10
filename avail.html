@@ -122,6 +122,7 @@
       
 
 
+
 cell.onclick = async () => {
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -140,35 +141,43 @@ cell.onclick = async () => {
   box.style.padding = "20px";
   box.style.borderRadius = "12px";
   box.style.textAlign = "center";
-  box.innerHTML = `
+
+  const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  box.innerHTML = \`
     <h3>Select Time Range</h3>
     <select id="start-time" style="margin:10px;padding:10px;"></select>
     <select id="end-time" style="margin:10px;padding:10px;"></select>
     <br/>
     <button id="submit-time" style="padding:10px 20px;margin-top:10px;">Submit</button>
-  `;
+  \`;
 
   modal.appendChild(box);
   document.body.appendChild(modal);
 
-  const startTime = document.getElementById("start-time");
-  const endTime = document.getElementById("end-time");
+  const startTime = box.querySelector("#start-time");
+  const endTime = box.querySelector("#end-time");
 
   for (let h = 9; h <= 22; h++) {
     for (let m = 0; m < 60; m += 30) {
       const time = ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2);
       const label = (h > 12 ? h - 12 : h) + ":" + ("0" + m).slice(-2) + (h >= 12 ? " PM" : " AM");
-      const opt = new Option(label, time);
-      startTime.add(opt.cloneNode(true));
-      endTime.add(opt.cloneNode(true));
+      const option = new Option(label, time);
+      startTime.add(option.cloneNode(true));
+      endTime.add(option.cloneNode(true));
     }
   }
   endTime.add(new Option("11:00 PM", "23:00"));
 
-  document.getElementById("submit-time").onclick = async () => {
+  box.querySelector("#submit-time").onclick = async () => {
     const start = startTime.value;
     const end = endTime.value;
     const userId = localStorage.getItem("gv_user_id");
+    if (!userId) {
+      alert("User not logged in.");
+      return;
+    }
+
     await supabase.from("availability").upsert({
       user_id: userId,
       date: dateISO,
@@ -176,9 +185,12 @@ cell.onclick = async () => {
       start_time: start,
       end_time: end
     });
+
     cell.classList.add("booked");
     document.body.removeChild(modal);
   };
+};
+
 };
 
 };

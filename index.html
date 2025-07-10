@@ -159,6 +159,8 @@
     <p>Email: <span id="dashboard-email"></span></p>
     <p>Username: <span id="dashboard-username"></span></p>
     <p>Range: <span id="dashboard-range"></span></p>
+<p>Timezone: <span id="dashboard-timezone"></span></p>
+<p>Agency: <span id="dashboard-agency"></span></p>
   </div>
 
   
@@ -263,6 +265,8 @@
     document.getElementById("dashboard-email").innerText = user.email;
     document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
     document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
+    document.getElementById("dashboard-timezone").innerText = user.user_metadata?.timezone || "-";
+    document.getElementById("dashboard-agency").innerText = user.user_metadata?.agency || "-";
   }
 
   window.onload = async () => {

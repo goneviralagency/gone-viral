@@ -295,6 +295,7 @@ async function renderCalendar(dateStr) {
         }
         const popup = document.querySelector(".popup");
         if (popup) popup.remove();
+renderCalendar(monthSelector.value);
       };
     }, 100);
           modal.onclick = () => document.body.removeChild(modal);

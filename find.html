@@ -235,7 +235,7 @@ async function renderCalendar(dateStr) {
             <div class="popup-box">
               <h3>@${e.tiktok_username || "Unknown"}</h3>
               <p><strong>Diamond Range:</strong> ${safeRange}</p>
-              <p><strong>Timezone:</strong> ${e.timezone || "N/A"}</p>
+              <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
               <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
               <button onclick="alert('Request Sent!')">REQUEST</button>

@@ -133,6 +133,163 @@ async function loadUserAndSetupUI() {
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUserAndSetupUI();
 });
+
+  // Constants
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
+  const calendar = document.getElementById("calendar");
+  const monthSelector = document.getElementById("monthSelector");
+  let currentRange = "0-10K";
+
+  function getRangeLevel(range) {
+    return levels.indexOf(range);
+  }
+
+  function getColorClass(userLevel, oppLevel) {
+    if (userLevel === oppLevel) return "green";
+    if (userLevel < oppLevel) return "red";
+    return "orange";
+  }
+
+  function convertToLocalTime(timeStr, timezone) {
+    try {
+      const date = new Date(`1970-01-01T${timeStr}:00Z`);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone });
+    } catch {
+      return timeStr;
+    }
+  }
+
+  function generateMonthOptions() {
+    const now = new Date();
+    for (let i = -2; i <= 2; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const opt = document.createElement("option");
+      opt.value = date.toISOString();
+      opt.text = date.toLocaleString("default", { month: "long", year: "numeric" });
+      if (i === 0) opt.selected = true;
+      monthSelector.appendChild(opt);
+    }
+  }
+
+  async function renderCalendar(dateStr) {
+    const userTZ = currentUser?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const userId = currentUser?.id;
+
+    const selected = new Date(dateStr);
+    const year = selected.getFullYear();
+    const month = selected.getMonth();
+    const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+    calendar.innerHTML = "";
+    weekdays.forEach(d => {
+      const div = document.createElement("div");
+      div.className = "header";
+      div.textContent = d;
+      calendar.appendChild(div);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    const { data, error } = await supabase.from("availability_with_user").select("*").eq("month", monthKey);
+    if (!data || data.length === 0) {
+      const info = document.createElement("p");
+      info.style.textAlign = "center";
+      info.style.marginTop = "20px";
+      info.style.color = "#777";
+      info.textContent = "No available creators found for this month.";
+      calendar.appendChild(info);
+      return;
+    }
+
+    const grouped = {};
+    data.forEach(entry => {
+      const key = entry.date;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(entry);
+    });
+
+    for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
+
+    for (let day = 1; day <= totalDays; day++) {
+      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const cell = document.createElement("div");
+      cell.className = "day";
+      cell.textContent = day;
+
+      if (grouped[dateKey]) {
+        grouped[dateKey].forEach(e => {
+          const safeRange = e.diamond_range ?? "MISSING";
+          const oppLevel = getRangeLevel(safeRange);
+          const colorClass = getColorClass(getRangeLevel(currentRange), oppLevel);
+
+          const tag = document.createElement("span");
+          tag.className = `tag ${colorClass}`;
+          tag.textContent = `@${e.tiktok_username || "Unknown"} (${safeRange})`;
+
+          tag.onclick = () => {
+            const modal = document.createElement("div");
+            modal.className = "popup";
+            modal.innerHTML = `
+              <div class="popup-box">
+                <h3>@${e.tiktok_username || "Unknown"}</h3>
+                <p><strong>Diamond Range:</strong> ${safeRange}</p>
+                <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
+                <p><strong>Date:</strong> ${e.date}</p>
+                <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)}</p>
+                <button id="confirmRequestBtn">REQUEST</button>
+              </div>`;
+            document.body.appendChild(modal);
+
+            setTimeout(() => {
+              const btn = document.getElementById("confirmRequestBtn");
+              btn.onclick = async () => {
+                await supabase.from("availability")
+                  .update({ status: "filled" })
+                  .eq("user_id", e.user_id)
+                  .eq("date", e.date)
+                  .eq("start_time", e.start_time);
+
+                await supabase.from("battles").insert([{
+                  requester_id: currentUser.id,
+                  recipient_id: e.user_id,
+                  date: e.date,
+                  time: e.start_time,
+                  status: "Request Sent",
+                  requester_timezone: userTZ,
+                  recipient_timezone: e.user_timezone || "N/A",
+                  requester_range: currentRange,
+                  recipient_range: e.diamond_range || "Unknown",
+                  requester_username: currentUser?.user_metadata?.tiktok_username || "Unknown",
+                  recipient_username: e.tiktok_username || "Unknown",
+                  requester_agency: currentUser?.user_metadata?.agency || "N/A",
+                  recipient_agency: e.agency || "N/A"
+                }]);
+
+                const badge = document.getElementById("confirmationBadge");
+                if (badge) {
+                  badge.style.display = "block";
+                  setTimeout(() => { badge.style.display = "none"; }, 3000);
+                }
+                const popup = document.querySelector(".popup");
+                if (popup) popup.remove();
+              };
+            }, 100);
+          };
+
+          cell.appendChild(tag);
+        });
+      }
+
+      calendar.appendChild(cell);
+    }
+  }
+
+  monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
+  generateMonthOptions();
+  renderCalendar(monthSelector.value);
+
 </script>
 
 </body>

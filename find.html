@@ -214,7 +214,17 @@ async function renderCalendar(dateStr) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
+  const { data, error } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
+  console.log("Fetched availability:", data, "Error:", error);
+  if (!data || data.length === 0) {
+    const info = document.createElement("p");
+    info.style.textAlign = "center";
+    info.style.marginTop = "20px";
+    info.style.color = "#777";
+    info.textContent = "No available creators found for this month.";
+    calendar.appendChild(info);
+    return;
+  }
   const grouped = {};
   data?.forEach(entry => {
     const key = entry.date;
@@ -239,7 +249,7 @@ async function renderCalendar(dateStr) {
 
         const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;
-        tag.textContent = safeRange;
+        tag.textContent = `@${e.tiktok_username || "Unknown"} (${safeRange})`;
 
         tag.onclick = () => {
           const modal = document.createElement("div");

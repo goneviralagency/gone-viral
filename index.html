@@ -176,27 +176,55 @@
     const range = document.getElementById("signup-range").value;
     const agency = document.getElementById("signup-agency").value;
 
-    const { data, error } = await client.auth.signUp({
+    const { data, error: signupError } = await client.auth.signUp({
       email,
       password,
       options: {
-        data: { name }
+        data: {
+          name, tiktok_username: username, timezone, diamond_range: range, agency
+        }
       }
     });
 
-    if (error || !data.user) {
-      alert(`Signup error: ${error?.message}`);
-    } else {
-      await client.from("users").upsert({
-        id: data.user.id,
-        email,
-        name,
-        tiktok_username: username,
-        diamond_range: range,
-        agency,
-        timezone
-      });
+    if (signupError) {
+      alert(`Signup error: ${signupError.message}`);
+      return;
+    }
 
+    const userId = data?.user?.id;
+
+    if (!userId) {
+      alert("Signup succeeded but user ID not returned.");
+      return;
+    }
+
+    // Insert into public.users
+    const { error: insertError } = await client
+      .from("users")
+      .insert([{
+        id: userId,
+        name,
+        email,
+        tiktok_username: username,
+        timezone,
+        diamond_range: range,
+        agency
+      }]);
+
+    if (insertError) {
+      alert("User created but failed to store profile: " + insertError.message);
+    } else {
+      alert("Signup successful!");
+      document.getElementById("signup-container").style.display = "none";
+      document.getElementById("login-email").value = email;
+      document.getElementById("login-password").value = password;
+      document.getElementById("auth-container").scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+    if (error) {
+      alert(`Signup error: ${error.message}`);
+    } else {
       alert("Signup successful!");
       document.getElementById("signup-container").style.display = "none";
       document.getElementById("login-email").value = email;
@@ -234,20 +262,6 @@
 
   async function loadDashboard() {
     const { data: { user } } = await client.auth.getUser();
-    if (!user) return;
-
-    document.getElementById("auth-container").style.display = "none";
-    document.getElementById("signup-container").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-
-    const { data: profile } = await client.from("users").select("*").eq("id", user.id).single();
-    if (profile) {
-      document.getElementById("dashboard-name").innerText = profile.name || "User";
-      document.getElementById("dashboard-email").innerText = profile.email;
-      document.getElementById("dashboard-username").innerText = profile.tiktok_username || "-";
-      document.getElementById("dashboard-range").innerText = profile.diamond_range || "-";
-    }
-  } } = await client.auth.getUser();
     if (!user) return;
     document.getElementById("auth-container").style.display = "none";
     document.getElementById("signup-container").style.display = "none";

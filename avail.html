@@ -120,6 +120,7 @@
       }
 
       
+
 cell.onclick = async () => {
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -152,8 +153,8 @@ cell.onclick = async () => {
   const startTime = document.getElementById("start-time");
   const endTime = document.getElementById("end-time");
 
-  for (let h = 9; h <= 23; h++) {
-    for (let m = 0; m < 60; m += 3) {
+  for (let h = 9; h <= 22; h++) {
+    for (let m = 0; m < 60; m += 30) {
       const time = ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2);
       const label = (h > 12 ? h - 12 : h) + ":" + ("0" + m).slice(-2) + (h >= 12 ? " PM" : " AM");
       const opt = new Option(label, time);
@@ -161,6 +162,8 @@ cell.onclick = async () => {
       endTime.add(opt.cloneNode(true));
     }
   }
+  // Add 11:00 PM end boundary
+  endTime.add(new Option("11:00 PM", "23:00"));
 
   document.getElementById("submit-time").onclick = async () => {
     const start = startTime.value;
@@ -176,6 +179,8 @@ cell.onclick = async () => {
     cell.classList.add("booked");
     document.body.removeChild(modal);
   };
+};
+
 };
 
 

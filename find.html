@@ -190,21 +190,42 @@
             }
             if (!opts) opts = `<option disabled>No slots available</option>`;
 
-            modal.innerHTML = `
-              <div class="popup-box" onclick="event.stopPropagation()">
-                <h3>@${e.tiktok_username || "Unknown"}</h3>
-                <p><strong>Date:</strong> ${e.date}</p>
-                <select id="timeDropdown">${opts}</select>
-                <p id="selectedTimeDisplay"></p>
-                <button id="confirmBtn">Confirm</button>
-              </div>`;
-            document.body.appendChild(modal);
-            modal.onclick = () => document.body.removeChild(modal);
+            
+    modal.innerHTML = `
+      <div class="popup-box" onclick="event.stopPropagation()">
+        <h3>@${e.tiktok_username || "Unknown"}</h3>
+        <p><strong>Date:</strong> ${e.date}</p>
+        <p><strong>Scheduled Time:</strong> ${convertTime(e.start_time, userTZ)}</p>
+        <button id="confirmBtn">Confirm Request</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.onclick = () => document.body.removeChild(modal);
 
-            setTimeout(() => {
-              document.getElementById("confirmBtn").onclick = async () => {
-                const selected_time = document.getElementById("timeDropdown").value;
-                document.getElementById("selectedTimeDisplay").textContent = `You selected: ${selected_time}`;
+    setTimeout(() => {
+      document.getElementById("confirmBtn").onclick = async () => {
+        const selected_time = e.start_time;
+        const { error } = await supabase.from("battles").insert([{
+          requester_id: currentUser.id,
+          recipient_id: e.user_id,
+          date: e.date,
+          time: selected_time,
+          status: "pending",
+          requester_timezone: userTZ,
+          recipient_timezone: e.user_timezone || "N/A",
+          requester_range: currentRange,
+          recipient_range: safeRange,
+          requester_username: currentUser?.user_metadata?.tiktok_username || "Unknown",
+          recipient_username: e.tiktok_username || "Unknown"
+        }]);
+        if (error) {
+          alert("Failed: " + error.message);
+        } else {
+          alert("Battle request sent for " + convertTime(selected_time, userTZ));
+          document.body.removeChild(modal);
+        }
+      };
+    }, 100);
+    
                 const { error } = await supabase.from("battles").insert([{
                   requester_id: currentUser.id,
                   recipient_id: e.user_id,

@@ -39,6 +39,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function login() {
+  console.log('[DEBUG] Attempting login...');
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
       const { error } = await client.auth.signInWithPassword({ email, password });
@@ -47,6 +48,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function signup() {
+  console.log('[DEBUG] Attempting signup...');
       const name = document.getElementById('signup-name').value;
       const tiktok = document.getElementById('signup-tiktok').value;
       const email = document.getElementById('signup-email').value;
@@ -78,6 +80,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function loadDashboard() {
+  console.log('[DEBUG] Loading Dashboard...');
       const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       document.getElementById('login-module').classList.add('hidden');
@@ -91,6 +94,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function loadAvailabilityForm() {
+  console.log('[DEBUG] Loading Availability Form...');
       const form = document.getElementById("availability-form");
       const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
       form.innerHTML = days.map(day => `
@@ -109,6 +113,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     });
 
     async function loadCalendar() {
+  console.log('[DEBUG] Loading Calendar View...');
       const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       const currentRange = user.user_metadata?.diamond_range || "0-10K";
@@ -150,7 +155,8 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       return "red";
     }
 
-    async function requestBattle(opponentId, day, start, end, timezone) {
+    async function requestBattle(...args) {
+  console.log('[DEBUG] Requesting Battle with:', args);opponentId, day, start, end, timezone) {
       const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
       if (!confirmed) return;
       const { data: { user } } = await client.auth.getUser();

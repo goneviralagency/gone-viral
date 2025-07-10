@@ -41,6 +41,13 @@
       }
     }
 
+async function resetPassword() {
+  const email = prompt("Enter your email to receive a reset link:");
+  const { error } = await client.auth.resetPasswordForEmail(email);
+  if (error) alert("Reset failed: " + error.message);
+  else alert("Password reset email sent.");
+}
+
     async function login() {
       const email = document.getElementById("login-email").value;
       const password = document.getElementById("login-password").value;
@@ -73,6 +80,7 @@
 
     window.signup = signup;
     window.login = login;
+window.resetPassword = resetPassword;
   </script>
 </head>
 <body style="font-family:sans-serif; padding: 2rem">
@@ -140,6 +148,7 @@
   <input id="login-email" placeholder="Email"/><br/>
   <input id="login-password" type="password" placeholder="Password"/><br/>
   <button onclick="login()">Log In</button>
+<button onclick="resetPassword()">Forgot Password?</button>
 
   <div id="dashboard" class="hidden" style="margin-top:2rem;">
     <h2>Dashboard</h2>

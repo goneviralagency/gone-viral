@@ -102,42 +102,6 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
 );
 
-
-window.handleBattleRequest = async (entry) => {
-    const time = prompt("Select a time from their availability (e.g. 13:00):");
-    if (!time) return alert("Time selection is required.");
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
-    const user = session?.user;
-
-    if (!user) return alert("You must be logged in.");
-
-    const { data: userProfile } = await supabase
-      .from("users")
-      .select("tiktok_username, agency, timezone")
-      .eq("id", user.id)
-      .single();
-
-    const battle = {
-      battle_date: entry.date,
-      battle_time: time,
-      diamond_range: entry.diamond_range ?? "0-10K",
-      creator_a_username: userProfile.tiktok_username,
-      creator_b_username: entry.tiktok_username,
-      creator_a_tiktok_userid: user.email,
-      creator_b_tiktok_userid: entry.user_id,
-      creator_a_timezone: userProfile.timezone,
-      creator_b_timezone: entry.user_timezone,
-      creator_a_agency: userProfile.agency,
-      creator_b_agency: entry.agency,
-      creator_a_confirmed: true,
-      creator_b_confirmed: false,
-      winner: null
-    };
-};
-
-
 const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
 const calendar = document.getElementById("calendar");
@@ -277,9 +241,10 @@ async function renderCalendar(dateStr) {
         tag.className = `tag ${colorClass}`;
         tag.textContent = safeRange;
 
-        
-        tag.onclick = (ev) => {
-          const entry = ev.target.entry;
+        tag.onclick = () => {
+          const modal = document.createElement("div");
+          modal.className = "popup";
+          
           const modal = document.createElement("div");
           modal.className = "popup";
 
@@ -287,30 +252,57 @@ async function renderCalendar(dateStr) {
           box.className = "popup-box";
 
           box.innerHTML = `
-            <h3>@${entry.tiktok_username || "Unknown"}</h3>
-            <p><strong>Diamond Range:</strong> ${entry.diamond_range}</p>
-            <p><strong>Timezone:</strong> ${entry.user_timezone || "N/A"}</p>
-            <p><strong>Date:</strong> ${entry.date}</p>
-            <p><strong>Time:</strong> ${convertToLocalTime(entry.start_time, userTZ)} - ${convertToLocalTime(entry.end_time, userTZ)}</p>
+            <h3>@${e.tiktok_username || "Unknown"}</h3>
+            <p><strong>Diamond Range:</strong> ${safeRange}</p>
+            <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
+            <p><strong>Date:</strong> ${e.date}</p>
           `;
+
+          const timeSelect = document.createElement("select");
+          const start = e.start_time;
+          const end = e.end_time;
+
+          const toMinutes = t => {
+            const [h, m] = t.split(":").map(Number);
+            return h * 60 + m;
+          };
+
+          const toTimeStr = m => {
+            const hh = String(Math.floor(m / 60)).padStart(2, '0');
+            const mm = String(m % 60).padStart(2, '0');
+            return `${hh}:${mm}`;
+          };
+
+          const startM = toMinutes(start);
+          const endM = toMinutes(end);
+
+          for (let t = startM; t < endM; t += 30) {
+            const opt = document.createElement("option");
+            opt.value = toTimeStr(t);
+            opt.textContent = toTimeStr(t);
+            timeSelect.appendChild(opt);
+          }
 
           const button = document.createElement("button");
           button.textContent = "REQUEST";
           button.style.background = "red";
           button.style.color = "white";
-          button.onclick = () => handleBattleRequest(entry);
+          button.onclick = () => {
+            const time = timeSelect.value;
+            handleBattleRequest({ ...e, selected_time: time });
+            document.body.removeChild(modal);
+          };
 
+          box.appendChild(timeSelect);
           box.appendChild(button);
           modal.appendChild(box);
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
-        };
-    
+
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };
 
-        tag.entry = e;
         cell.appendChild(tag);
       });
     }
@@ -323,17 +315,6 @@ monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
 await loadUserAndSetupUI();
 renderCalendar(monthSelector.value);
-
-  
-
-    const { error } = await supabase.from("battles").insert(battle);
-    if (error) {
-      console.error("Battle creation failed", error);
-      alert("Error: " + error.message);
-    } else {
-      alert("Battle request submitted!");
-    }
-
 </script>
 </body>
 </html>

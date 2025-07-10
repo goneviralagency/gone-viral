@@ -104,15 +104,15 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       <input type="time" name="end-${day}" class="p-1 bg-gray-800 rounded"/>
     </div>`).join("") + `<button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-500 p-2 rounded w-full">Save Availability</button>`;
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async function(e) {
     e.preventDefault();
     const { data: { user } } = await client.auth.getUser();
     if (!user) return alert("Not logged in");
 
     const timezone = user.user_metadata?.timezone || "UTC";
     for (let day of days) {
-      const start = form.querySelector(`[name=start-${day}]`).value;
-      const end = form.querySelector(`[name=end-${day}]`).value;
+      const start = form.querySelector(\`[name=start-\${day}]\`).value;
+      const end = form.querySelector(\`[name=end-\${day}]\`).value;
       if (start && end) {
         await client.from("availability").insert({
           user_id: user.id,
@@ -123,6 +123,10 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         });
       }
     }
+
+    alert("Availability saved!");
+  });
+}
 
     alert("Availability saved!");
     alert("Availability saved!");

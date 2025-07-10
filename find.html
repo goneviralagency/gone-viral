@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,7 @@
       background: #f1f1f1;
       margin: 0;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
     }
     .container {
@@ -23,7 +24,6 @@
       border: 1px solid #ccc;
       padding: 8px;
       min-height: 60px;
-      position: relative;
     }
     .tag {
       display: inline-block;
@@ -56,14 +56,6 @@
       text-align: center;
       width: 300px;
     }
-    .popup-box button {
-      margin-top: 10px;
-      padding: 8px 12px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -74,32 +66,38 @@
 <body>
   <div class="container">
     <h1>Gone Viral Battle App</h1>
-    <div>
-      <select id="monthSelector"></select>
-    </div>
+    <select id="monthSelector"></select>
     <div id="calendar" class="calendar"></div>
   </div>
+
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
     const supabase = createClient(
       'https://dptolytfqrdzhvdlntfb.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
     );
+
     const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
     const calendar = document.getElementById("calendar");
     const monthSelector = document.getElementById("monthSelector");
     let currentUser = null;
     let currentRange = "0-10K";
-    function getRangeLevel(r) { return levels.indexOf(r); }
+
+    function getRangeLevel(r) {
+      return levels.indexOf(r);
+    }
+
     function getColor(userLevel, oppLevel) {
       if (userLevel === oppLevel) return "green";
       if (userLevel < oppLevel) return "red";
       return "orange";
     }
+
     function convertTime(t, tz) {
       const date = new Date(`1970-01-01T${t}:00Z`);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: tz });
     }
+
     function generateMonthOptions() {
       const now = new Date();
       for (let i = -2; i <= 2; i++) {
@@ -111,6 +109,7 @@
         monthSelector.appendChild(opt);
       }
     }
+
     async function login() {
       const { data: session } = await supabase.auth.getSession();
       if (session?.session?.user) {
@@ -122,24 +121,29 @@
         if (error) return alert(error.message);
         currentUser = data.user;
       }
+
       const { data } = await supabase.from("users").select("*").eq("id", currentUser.id).single();
       currentRange = data?.diamond_range || "0-10K";
     }
+
     async function renderCalendar(dateStr) {
       const userLevel = getRangeLevel(currentRange);
       const userId = currentUser?.id;
       const userTZ = currentUser?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const selected = new Date(dateStr);
       const y = selected.getFullYear();
       const m = selected.getMonth();
       const monthKey = `${y}-${String(m + 1).padStart(2, "0")}`;
       calendar.innerHTML = "";
+
       ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
         const div = document.createElement("div");
         div.className = "header";
         div.textContent = d;
         calendar.appendChild(div);
       });
+
       const firstDay = new Date(y, m, 1).getDay();
       const totalDays = new Date(y, m + 1, 0).getDate();
       const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
@@ -149,40 +153,54 @@
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(entry);
       });
+
       for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
+
       for (let d = 1; d <= totalDays; d++) {
         const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
         const cell = document.createElement("div");
         cell.className = "day";
         cell.textContent = d;
+
         grouped[dateKey]?.forEach(e => {
           const safeRange = e.diamond_range ?? "MISSING";
           const tag = document.createElement("span");
           tag.className = `tag ${getColor(userLevel, getRangeLevel(safeRange))}`;
           tag.textContent = safeRange;
+
           tag.onclick = () => {
+            if (!e.start_time || !e.end_time) {
+              alert("Start or end time is missing.");
+              return;
+            }
+
+            const [startHour, startMinute] = e.start_time.split(":").map(Number);
+            const [endHour, endMinute] = e.end_time.split(":").map(Number);
+            const start = new Date(Date.UTC(1970, 0, 1, startHour, startMinute));
+            const end = new Date(Date.UTC(1970, 0, 1, endHour, endMinute));
+
             const modal = document.createElement("div");
             modal.className = "popup";
-            const start = new Date(`1970-01-01T${e.start_time}:00Z`);
-            const end = new Date(`1970-01-01T${e.end_time}:00Z`);
-            const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
+
             let opts = "";
             for (let t = new Date(start); t < end; t.setMinutes(t.getMinutes() + 30)) {
               const iso = t.toISOString().substr(11,5);
               const local = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: userTZ });
               opts += `<option value="${iso}">${local}</option>`;
             }
+            if (!opts) opts = `<option disabled>No slots available</option>`;
+
             modal.innerHTML = `
               <div class="popup-box" onclick="event.stopPropagation()">
                 <h3>@${e.tiktok_username || "Unknown"}</h3>
                 <p><strong>Date:</strong> ${e.date}</p>
-                <p><strong>Time:</strong> ${convertTime(e.start_time, userTZ)} - ${convertTime(e.end_time, userTZ)}</p>
                 <select id="timeDropdown">${opts}</select>
                 <p id="selectedTimeDisplay"></p>
                 <button id="confirmBtn">Confirm</button>
               </div>`;
             document.body.appendChild(modal);
             modal.onclick = () => document.body.removeChild(modal);
+
             setTimeout(() => {
               document.getElementById("confirmBtn").onclick = async () => {
                 const selected_time = document.getElementById("timeDropdown").value;
@@ -197,7 +215,7 @@
                   recipient_timezone: e.user_timezone || "N/A",
                   requester_range: currentRange,
                   recipient_range: safeRange,
-                  requester_username: requesterUsername,
+                  requester_username: currentUser?.user_metadata?.tiktok_username || "Unknown",
                   recipient_username: e.tiktok_username || "Unknown"
                 }]);
                 if (error) {
@@ -209,11 +227,14 @@
               };
             }, 100);
           };
+
           cell.appendChild(tag);
         });
+
         calendar.appendChild(cell);
       }
     }
+
     monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
     generateMonthOptions();
     await login();

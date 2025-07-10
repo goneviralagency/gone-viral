@@ -237,19 +237,20 @@ async function renderCalendar(dateStr) {
 
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
-        if (!filterRanges.includes(e.diamond_range)) return;
-        const oppLevel = getRangeLevel(e.diamond_range || "0-10K");
+        const safeRange = e.diamond_range || "0-10K";
+        if (!filterRanges.includes(safeRange)) return;
+        const oppLevel = getRangeLevel(safeRange);
         const colorClass = getColorClass(userLevel, oppLevel);
         const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;
-        tag.textContent = e.diamond_range || "0-10K";
+        tag.textContent = safeRange;
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
           modal.innerHTML = `
             <div class="popup-box">
               <h3>@${e.tiktok_username || "Unknown"}</h3>
-              <p><strong>Diamond Range:</strong> ${e.diamond_range}</p>
+              <p><strong>Diamond Range:</strong> ${safeRange}</p>
               <p><strong>Timezone:</strong> ${e.timezone}</p>
               <p><strong>Date:</strong> ${e.date}</p>
               <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>

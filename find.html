@@ -214,10 +214,12 @@ async function renderCalendar(dateStr) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const { data } = await supabase.from("availability_with_user").select("*")
+  const { data } = await supabase
+  .from("availability_with_user")
+  .select("*")
   .eq("month", monthKey)
-  .neq("user_id", userId)
-  .neq("status", "filled").eq("month", monthKey).neq("user_id", userId);
+  .eq("status", "available")
+  .neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
     const key = entry.date;

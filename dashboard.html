@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Battle Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Incoming Battles</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f2f4f8;
-      margin: 0;
+      font-family: Inter, sans-serif;
+      background: #f5f6f9;
       padding: 20px;
-      color: #333;
     }
     .container {
       max-width: 800px;
@@ -19,39 +17,35 @@
     h2 {
       font-size: 1.5rem;
       border-bottom: 2px solid #ccc;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
     }
-    .battle-card {
-      background: #fff;
+    .card {
+      background: white;
       padding: 16px;
       margin: 12px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .battle-card p {
+    .card p {
       margin: 6px 0;
     }
-    button {
-      padding: 8px 16px;
+    .card button {
+      margin-top: 10px;
+      margin-right: 10px;
+      padding: 8px 14px;
       border: none;
       border-radius: 6px;
-      margin-top: 8px;
-      margin-right: 8px;
-      cursor: pointer;
       font-weight: 600;
+      cursor: pointer;
     }
     .accept { background: #28a745; color: white; }
     .decline { background: #dc3545; color: white; }
-    .cancel { background: #ffc107; color: black; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Incoming Battles</h2>
     <div id="incoming"></div>
-
-    <h2>Scheduled Battles</h2>
-    <div id="scheduled"></div>
   </div>
 
   <script type="module">
@@ -64,12 +58,10 @@
     let currentUser = null;
 
     async function loadUser() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      console.debug("🔐 User session:", user, error);
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return alert("Not logged in");
       currentUser = user;
       loadIncomingBattles();
-      loadScheduledBattles();
     }
 
     async function loadIncomingBattles() {
@@ -81,16 +73,15 @@
         .eq("recipient_id", currentUser.id)
         .eq("recipient_confirm", "pending")
         .eq("status", "Request Sent");
-      console.debug("📥 Incoming battles:", { data, error });
 
       if (!data || data.length === 0) {
-        container.innerHTML = "<p>No incoming battles.</p>";
+        container.innerHTML = "<p>No incoming battles found.</p>";
         return;
       }
 
       data.forEach(b => {
         const div = document.createElement("div");
-        div.className = "battle-card";
+        div.className = "card";
         div.innerHTML = `
           <p><strong>@${b.requester_username}</strong></p>
           <p>Date: ${b.date}</p>
@@ -98,74 +89,44 @@
           <button class="accept">Accept</button>
           <button class="decline">Decline</button>
         `;
-        div.querySelector(".accept").addEventListener("click", () => acceptBattle(b.id, b.date, b.start_time));
+        div.querySelector(".accept").addEventListener("click", () => acceptBattle(b.id));
         div.querySelector(".decline").addEventListener("click", () => declineBattle(b.id, b.date, b.start_time));
         container.appendChild(div);
       });
     }
 
-    async function loadScheduledBattles() {
-      const container = document.getElementById("scheduled");
-      container.innerHTML = "";
-      const { data, error } = await supabase
+    async function acceptBattle(id) {
+      const { error } = await supabase
         .from("battles")
-        .select("*")
-        .eq("recipient_id", currentUser.id)
-        .eq("recipient_confirm", "confirmed");
-      console.debug("📅 Scheduled battles:", { data, error });
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p>No scheduled battles.</p>";
-        return;
+        .update({ recipient_confirm: "confirmed" })
+        .eq("id", id);
+      if (error) alert("Failed to confirm battle.");
+      else {
+        alert("Battle accepted.");
+        loadIncomingBattles();
       }
-
-      data.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "battle-card";
-        div.innerHTML = `
-          <p><strong>@${b.requester_username}</strong></p>
-          <p>Date: ${b.date}</p>
-          <p>Time: ${b.time}</p>
-          <button class="cancel">Cancel Battle</button>
-        `;
-        div.querySelector(".cancel").addEventListener("click", () => cancelBattle(b.id, b.date, b.start_time));
-        container.appendChild(div);
-      });
     }
 
-    window.acceptBattle = async function(id, date, start_time) {
-      console.debug("✅ Accepting battle:", { id, date, start_time });
-      await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
-      const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
-  console.debug('📦 Availability update result:', { availData, availError });
-      alert("Battle accepted and availability updated.");
-      loadIncomingBattles();
-      loadScheduledBattles();
-    }
+    async function declineBattle(id, date, start_time) {
+      const { error: battleError } = await supabase
+        .from("battles")
+        .delete()
+        .eq("id", id);
 
-    window.declineBattle = async function(id, date, start_time) {
-  console.debug('⏪ Declining battle with:', { id, date, start_time });
-  const { error: delError } =   
-      console.debug("❌ Declining battle:", { id, date, start_time });
-            const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
-  console.debug('📦 Availability update result:', { availData, availError });
-      alert("Battle declined and availability updated.");
-      loadIncomingBattles();
-    }
+      const { error: availError } = await supabase
+        .from("availability")
+        .update({ status: "available" })
+        .eq("date", date)
+        .eq("start_time", start_time);
 
-    window.cancelBattle = async function(id, date, start_time) {
-      console.debug("⚠️ Cancelling battle:", { id, date, start_time });
-            const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
-  console.debug('📦 Availability update result:', { availData, availError });
-      alert("Battle cancelled and availability restored.");
-      loadScheduledBattles();
+      if (battleError || availError) alert("Failed to decline battle or update availability.");
+      else {
+        alert("Battle declined and availability set to available.");
+        loadIncomingBattles();
+      }
     }
 
     loadUser();
-    setInterval(() => {
-      loadIncomingBattles();
-      loadScheduledBattles();
-    }, 60000);
   </script>
 </body>
 </html>

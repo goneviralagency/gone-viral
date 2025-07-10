@@ -312,11 +312,21 @@ setTimeout(() => {
         badge.style.display = "block";
         setTimeout(() => { badge.style.display = "none"; }, 3000);
       }
-      document.body.removeChild(modal);
+      
+const popup = document.querySelector(".popup");
+if (popup) {
+  document.body.removeChild(popup);
+}
+
     }
   };
 }, 100);
-          modal.onclick = () => document.body.removeChild(modal);
+          modal.onclick = () => 
+const popup = document.querySelector(".popup");
+if (popup) {
+  document.body.removeChild(popup);
+}
+
           document.body.appendChild(modal);
         };
 

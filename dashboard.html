@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #f9f9f9, #f1f4f8);
+      color: #333;
+    }
+    .dashboard-wrapper {
+      max-width: 600px;
+      margin: 80px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    summary {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      background: #fefefe;
+    }
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #007aff;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #005ddf;
+    }
+    .battle-request {
+      border: 1px solid #ccc;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      background: #fefefe;
+    }
+    .battle-request h4 {
+      margin: 0 0 10px;
+    }
+    .battle-request button {
+      width: auto;
+      margin: 5px 5px 0 0;
+      padding: 8px 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <h2 style="text-align:center; font-size: 1.5rem; letter-spacing: 1px; margin-top: 0;">DASHBOARD</h2>
+
+    <details>
+      <summary>Edit Profile</summary>
+      <label for="tiktok">TikTok Username</label>
+      <input id="tiktok" placeholder="@username" />
+      <label for="range">Diamond Range</label>
+      <select id="range">
+        <option>0-10K</option><option>0-20K</option><option>20-50K</option>
+        <option>50-100K</option><option>100-200K</option><option>200K+</option>
+      </select>
+      <label for="timezone">Timezone</label>
+      <select id="timezone">
+        <option>America/Toronto</option><option>America/Vancouver</option>
+        <option>America/New_York</option><option>America/Chicago</option>
+        <option>Europe/London</option><option>Asia/Manila</option>
+      </select>
+      <label for="agency">Agency</label>
+      <input id="agency" placeholder="Agency name" />
+      <button onclick="saveDashboard()">Save</button>
+    </details>
+
+    <h3 style="margin-top: 2rem;">Incoming Battle Requests</h3>
+    <div id="battleRequests"></div>
+
+    <h3 style="margin-top: 2rem;">Scheduled Battles</h3>
+    <div id="scheduledBattles"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient('https://dptolytfqrdzhvdlntfb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok');
+
+    let currentUser;
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      currentUser = user;
+      const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
+      if (data) {
+        document.getElementById('tiktok').value = data.tiktok_username || "";
+        document.getElementById('range').value = data.diamond_range || "0-10K";
+        document.getElementById('timezone').value = data.timezone || "America/Toronto";
+        document.getElementById('agency').value = data.agency || "";
+      }
+      loadBattleRequests();
+      loadScheduledBattles();
+    }
+
+    window.saveDashboard = async function () {
+      if (!currentUser) return;
+      const updates = {
+        tiktok_username: document.getElementById('tiktok').value,
+        diamond_range: document.getElementById('range').value,
+        timezone: document.getElementById('timezone').value,
+        agency: document.getElementById('agency').value
+      };
+      const { error } = await supabase.from('users').update(updates).eq('id', currentUser.id);
+      if (error) alert("Update failed: " + error.message);
+      else alert("Profile updated successfully");
+    };
+
+    async function loadBattleRequests() {
+      const container = document.getElementById("battleRequests");
+      container.innerHTML = "";
+      const { data } = await supabase
+        .from("battles")
+        .select("id, date, time, requester_id, requester_username, requester_timezone, requester_range")
+        .eq("recipient_id", currentUser.id)
+        .eq("status", "Request Sent")
+        .eq("recipient_confirm", "pending");
+
+      if (data?.length) {
+        data.forEach(battle => {
+          const div = document.createElement("div");
+          div.className = "battle-request";
+          div.innerHTML = `
+            <h4>@${battle.requester_username}</h4>
+            <p>Date: ${battle.date}</p>
+            <p>Time: ${battle.time}</p>
+            <p>Timezone: ${battle.requester_timezone}</p>
+            <p>Diamond Range: ${battle.requester_range}</p>
+    <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')" style="background:#28a745;">ACCEPT</button>
+            
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = "<p>No battle requests.</p>";
+      }
+    }
+
+    async function loadScheduledBattles() {
+      const container = document.getElementById("scheduledBattles");
+      container.innerHTML = "";
+      const { data } = await supabase
+        .from("battles")
+        .select("id, date, time, requester_username, requester_timezone, requester_range")
+        .eq("recipient_id", currentUser.id)
+        .eq("recipient_confirm", "confirmed");
+
+      if (data?.length) {
+        data.forEach(battle => {
+          const div = document.createElement("div");
+          div.className = "battle-request";
+          div.innerHTML = `
+            <h4>@${battle.requester_username}</h4>
+            <p>Date: ${battle.date}</p>
+            <p>Time: ${battle.time}</p>
+            <p>Timezone: ${battle.requester_timezone}</p>
+            <p>Diamond Range: ${battle.requester_range}</p>
+    <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')" style="background:#28a745;">ACCEPT</button>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = "<p>No scheduled battles.</p>";
+      }
+    }
+
+    window.confirmBattle = async function (id, requesterId) {
+  await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
+  alert("YOUR BATTLE HAS BEEN CONFIRMED!");
+  loadBattleRequests();
+  loadScheduledBattles();
+  loadScheduledBattles();
+      loadScheduledBattles();
+    };
+
+    window.declineBattle = async function (id) {
+  const reason = prompt("Please provide a reason for declining this battle:");
+  if (reason === null) return;
+  await supabase.from("battles").delete().eq("id", id);
+  alert("BATTLE HAS BEEN DECLINED");
+  loadBattleRequests();
+    };
+
+    loadUser();
+setInterval(() => loadUser(), 60000);
+
+  </script>
+</body>
+</html>

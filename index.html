@@ -167,60 +167,58 @@
     document.getElementById('nav').classList.toggle('show');
   };
 
-  window.signup = async () => {
-    const email = document.getElementById("signup-email").value;
-    const password = document.getElementById("signup-password").value;
-    const name = document.getElementById("signup-name").value;
-    const username = document.getElementById("signup-tiktok").value;
-    const timezone = document.getElementById("signup-timezone").value;
-    const range = document.getElementById("signup-range").value;
-    const agency = document.getElementById("signup-agency").value;
+  window.signup = async function () {
+  const email = document.getElementById("signup-email").value;
+  const password = document.getElementById("signup-password").value;
+  const name = document.getElementById("signup-name").value;
+  const username = document.getElementById("signup-tiktok").value;
+  const timezone = document.getElementById("signup-timezone").value;
+  const range = document.getElementById("signup-range").value;
+  const agency = document.getElementById("signup-agency").value;
 
-    const { data, error: signupError } = await client.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name, tiktok_username: username, timezone, diamond_range: range, agency
-        }
+  const { data, error: signupError } = await client.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name, tiktok_username: username, timezone, diamond_range: range, agency
       }
-    });
-
-    if (signupError) {
-      alert(`Signup error: ${signupError.message}`);
-      return;
     }
+  });
 
-    const userId = data?.user?.id;
+  if (signupError) {
+    alert(`Signup error: ${signupError.message}`);
+    return;
+  }
 
-    if (!userId) {
-      alert("Signup succeeded but user ID not returned.");
-      return;
-    }
+  const userId = data?.user?.id;
+  if (!userId) {
+    alert("Signup succeeded but user ID not returned.");
+    return;
+  }
 
-    // Insert into public.users
-    const { error: insertError } = await client
-      .from("users")
-      .insert([{
-        id: userId,
-        name,
-        email,
-        tiktok_username: username,
-        timezone,
-        diamond_range: range,
-        agency
-      }]);
+  const { error: insertError } = await client
+    .from("users")
+    .insert([{
+      id: userId,
+      name,
+      email,
+      tiktok_username: username,
+      timezone,
+      diamond_range: range,
+      agency
+    }]);
 
-    if (insertError) {
-      alert("User created but failed to store profile: " + insertError.message);
-    } else {
-      alert("Signup successful!");
-      document.getElementById("signup-container").style.display = "none";
-      document.getElementById("login-email").value = email;
-      document.getElementById("login-password").value = password;
-      document.getElementById("auth-container").scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  if (insertError) {
+    alert("User created but failed to store profile: " + insertError.message);
+  } else {
+    alert("Signup successful!");
+    document.getElementById("signup-container").style.display = "none";
+    document.getElementById("login-email").value = email;
+    document.getElementById("login-password").value = password;
+    document.getElementById("auth-container").scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
     if (error) {
       alert(`Signup error: ${error.message}`);
@@ -233,7 +231,7 @@
     }
   };
 
-  window.login = async () => {
+  window.login = async function () {
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
     if (!email || !password) return alert("Please enter both email and password.");

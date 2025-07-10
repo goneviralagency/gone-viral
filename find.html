@@ -313,7 +313,9 @@ setTimeout(() => {
         setTimeout(() => { badge.style.display = "none"; }, 3000);
       }
       const popup = document.querySelector(".popup");
-      if (popup) popup.remove();
+    if (popup) {
+      document.body.removeChild(popup);
+    }
     }
   };
 }, 100);

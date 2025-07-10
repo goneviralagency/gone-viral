@@ -65,8 +65,10 @@ async function resetPassword() {
     }
 
     async function loadDashboard() {
+  const dashboard = document.getElementById('dashboard');
+  if (dashboard) dashboard.classList.add('hidden');
       const { data: { user } } = await client.auth.getUser();
-      if (!user) return alert("Not logged in");
+  if (!user) return;
 
       document.getElementById("dashboard").classList.remove("hidden");
       document.getElementById("dashboard-name").innerText = user.user_metadata?.name || "No name";

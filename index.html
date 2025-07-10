@@ -49,8 +49,10 @@ async function resetPassword() {
 }
 
     async function login() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
+  const email = document.getElementById("login-email")?.value;
+  const password = document.getElementById("login-password")?.value;
+  if (!email || !password) return alert("Please enter both email and password.");
+  console.log("LOGIN ATTEMPT:", email, password);
 
       const { error } = await client.auth.signInWithPassword({ email, password });
 

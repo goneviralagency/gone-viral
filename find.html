@@ -95,6 +95,7 @@
     <div id="calendar"></div>
   </div>
 
+
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
@@ -105,6 +106,26 @@ const supabase = createClient(
 const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const calendar = document.getElementById("calendar");
 const monthSelector = document.getElementById("monthSelector");
+
+function getRangeLevel(range) {
+  const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
+  return levels.indexOf(range);
+}
+
+function getColorClass(userLevel, otherLevel) {
+  if (userLevel === otherLevel) return "green";
+  if (otherLevel < userLevel) return "orange";
+  return "red";
+}
+
+function convertToLocalTime(timeStr, timezone) {
+  try {
+    const date = new Date(`1970-01-01T${timeStr}:00Z`);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone });
+  } catch {
+    return timeStr;
+  }
+}
 
 function generateMonthOptions() {
   const now = new Date();
@@ -118,22 +139,12 @@ function generateMonthOptions() {
   }
 }
 
-function getRangeLevel(range) {
-  const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
-  return levels.indexOf(range);
-}
-
-function getColorClass(userLevel, targetLevel) {
-  if (userLevel === targetLevel) return "green";
-  if (targetLevel < userLevel) return "orange";
-  return "red";
-}
-
 async function renderCalendar(dateStr) {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
   const currentRange = user?.user_metadata?.diamond_range || "0-10K";
   const userLevel = getRangeLevel(currentRange);
+  const userTZ = user?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const selected = new Date(dateStr);
   const year = selected.getFullYear();
@@ -151,16 +162,14 @@ async function renderCalendar(dateStr) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const { data } = await supabase.from("availability_with_user").select("date, start_time, end_time, user_id, month, timezone, tiktok_username, agency, diamond_range").eq("month", monthKey).neq("user_id", userId);
+  const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
     if (!grouped[entry.date]) grouped[entry.date] = [];
     grouped[entry.date].push(entry);
   });
 
-  for (let i = 0; i < firstDay; i++) {
-    calendar.appendChild(document.createElement("div"));
-  }
+  for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
 
   for (let day = 1; day <= totalDays; day++) {
     const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -170,11 +179,10 @@ async function renderCalendar(dateStr) {
 
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
-        const tag = document.createElement("span");
         const level = getRangeLevel(e.diamond_range);
         const colorClass = getColorClass(userLevel, level);
+        const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;
-        console.log("Diamond Range for", e.user_id, "=", e.diamond_range);
         tag.textContent = e.diamond_range || "Unknown";
         tag.onclick = () => {
           const modal = document.createElement("div");
@@ -182,9 +190,11 @@ async function renderCalendar(dateStr) {
           modal.innerHTML = `
             <div class="popup-box">
               <h3>@${e.tiktok_username || "Unknown"}</h3>
-              <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${e.start_time} - ${e.end_time}</p>
+              <p><strong>Diamond Range:</strong> ${e.diamond_range}</p>
+              <p><strong>Agency:</strong> ${e.agency || "-"}</p>
               <p><strong>Timezone:</strong> ${e.timezone}</p>
+              <p><strong>Date:</strong> ${e.date}</p>
+              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
               <button onclick="alert('Request battle')">REQUEST</button>
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);
@@ -202,5 +212,6 @@ monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
 renderCalendar(monthSelector.value);
 </script>
+
 </body>
 </html>

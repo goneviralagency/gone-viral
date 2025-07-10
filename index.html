@@ -78,13 +78,20 @@ async function resetPassword() {
     }
 
     window.onload = async () => {
+  document.getElementById('dashboard')?.classList.add('hidden');
       const { data: { session } } = await client.auth.getSession();
-      if (session) loadDashboard();
+  if (session && session.user) loadDashboard();
     };
 
     window.signup = signup;
     window.login = login;
+async function logout() {
+  await client.auth.signOut();
+  alert("Logged out");
+  location.reload();
+}
 window.resetPassword = resetPassword;
+window.logout = logout;
   </script>
 </head>
 <body style="font-family:sans-serif; padding: 2rem">
@@ -156,6 +163,7 @@ window.resetPassword = resetPassword;
 
   <div id="dashboard" class="hidden" style="margin-top:2rem;">
     <h2>Dashboard</h2>
+<button onclick="logout()">Log Out</button>
     <p>Name: <span id="dashboard-name"></span></p>
     <p>Email: <span id="dashboard-email"></span></p>
     <p>Username: <span id="dashboard-username"></span></p>

@@ -96,6 +96,39 @@
 <div id="calendar"></div>
 </div>
 <script type="module">
+window.handleBattleRequest = async (entry) => {
+    const time = prompt("Select a time from their availability (e.g. 13:00):");
+    if (!time) return alert("Time selection is required.");
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    const user = session?.user;
+
+    if (!user) return alert("You must be logged in.");
+
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("tiktok_username, agency, timezone")
+      .eq("id", user.id)
+      .single();
+
+    const battle = {
+      battle_date: entry.date,
+      battle_time: time,
+      diamond_range: entry.diamond_range ?? "0-10K",
+      creator_a_username: userProfile.tiktok_username,
+      creator_b_username: entry.tiktok_username,
+      creator_a_tiktok_userid: user.email,
+      creator_b_tiktok_userid: entry.user_id,
+      creator_a_timezone: userProfile.timezone,
+      creator_b_timezone: entry.user_timezone,
+      creator_a_agency: userProfile.agency,
+      creator_b_agency: entry.agency,
+      creator_a_confirmed: true,
+      creator_b_confirmed: false,
+      winner: null
+    };
+
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
   'https://dptolytfqrdzhvdlntfb.supabase.co',
@@ -272,38 +305,7 @@ generateMonthOptions();
 await loadUserAndSetupUI();
 renderCalendar(monthSelector.value);
 
-  window.handleBattleRequest = async (entry) => {
-    const time = prompt("Select a time from their availability (e.g. 13:00):");
-    if (!time) return alert("Time selection is required.");
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
-    const user = session?.user;
-
-    if (!user) return alert("You must be logged in.");
-
-    const { data: userProfile } = await supabase
-      .from("users")
-      .select("tiktok_username, agency, timezone")
-      .eq("id", user.id)
-      .single();
-
-    const battle = {
-      battle_date: entry.date,
-      battle_time: time,
-      diamond_range: entry.diamond_range ?? "0-10K",
-      creator_a_username: userProfile.tiktok_username,
-      creator_b_username: entry.tiktok_username,
-      creator_a_tiktok_userid: user.email,
-      creator_b_tiktok_userid: entry.user_id,
-      creator_a_timezone: userProfile.timezone,
-      creator_b_timezone: entry.user_timezone,
-      creator_a_agency: userProfile.agency,
-      creator_b_agency: entry.agency,
-      creator_a_confirmed: true,
-      creator_b_confirmed: false,
-      winner: null
-    };
+  
 
     const { error } = await supabase.from("battles").insert(battle);
     if (error) {

@@ -202,7 +202,9 @@
     modal.onclick = () => document.body.removeChild(modal);
 
     setTimeout(() => {
-      document.getElementById("confirmBtn").onclick = async () => {
+      
+    document.getElementById("confirmBtn").onclick = function () {
+      (async () => {
         const selected_time = e.start_time;
         const { error } = await supabase.from("battles").insert([{
           requester_id: currentUser.id,
@@ -223,7 +225,9 @@
           alert("Battle request sent for " + convertTime(selected_time, userTZ));
           document.body.removeChild(modal);
         }
-      };
+      })();
+    };
+    
     }, 100);
     
                 const { error } = await supabase.from("battles").insert([{

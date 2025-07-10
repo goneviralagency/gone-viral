@@ -169,7 +169,7 @@ async function renderCalendar(dateStr) {
 
   const { data: entries } = await supabase
     .from("availability")
-    .select("date, start_time, end_time, user_id, month, diamond_range, tiktok_username")
+    .select("date, start_time, end_time, user_id, month, users(diamond_range, tiktok_username)")
     .eq("month", monthKey);
 
   const grouped = {};
@@ -193,17 +193,17 @@ async function renderCalendar(dateStr) {
     if (grouped[dateISO]) {
       if (Array.isArray(grouped[dateISO])) grouped[dateISO].forEach(entry => {
         const tag = document.createElement("span");
-        tag.className = `range-tag ${getColorClass(entry.diamond_range)}`;
-        tag.textContent = entry.diamond_range;
+        tag.className = `range-tag ${getColorClass(entry.users?.diamond_range or '0-5K')}`;
+        tag.textContent = entry.users?.diamond_range or '0-5K';
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
           modal.innerHTML = `
             <div class="popup-box">
-              <h3>${entry.tiktok_username}</h3>
+              <h3>${entry.users?.tiktok_username or 'Unknown'}</h3>
               <p><strong>Date:</strong> ${entry.date}</p>
               <p><strong>Time:</strong> ${entry.start_time} - ${entry.end_time}</p>
-              <p><strong>Range:</strong> ${entry.diamond_range}</p>
+              <p><strong>Range:</strong> ${entry.users?.diamond_range or '0-5K'}</p>
               <button onclick="alert('Request sent!')">REQUEST</button>
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);

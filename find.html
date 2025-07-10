@@ -277,21 +277,35 @@ async function renderCalendar(dateStr) {
         tag.className = `tag ${colorClass}`;
         tag.textContent = safeRange;
 
+        
         tag.onclick = (ev) => {
-  const entry = ev.target.entry;
+          const entry = ev.target.entry;
           const modal = document.createElement("div");
           modal.className = "popup";
-          modal.innerHTML = `
-            <div class="popup-box">
-              <h3>@${e.tiktok_username || "Unknown"}</h3>
-              <p><strong>Diamond Range:</strong> ${safeRange}</p>
-              <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
-              <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
-              
-    <button onclick="handleBattleRequest(e)">REQUEST</button>
+
+          const box = document.createElement("div");
+          box.className = "popup-box";
+
+          box.innerHTML = `
+            <h3>@${entry.tiktok_username || "Unknown"}</h3>
+            <p><strong>Diamond Range:</strong> ${entry.diamond_range}</p>
+            <p><strong>Timezone:</strong> ${entry.user_timezone || "N/A"}</p>
+            <p><strong>Date:</strong> ${entry.date}</p>
+            <p><strong>Time:</strong> ${convertToLocalTime(entry.start_time, userTZ)} - ${convertToLocalTime(entry.end_time, userTZ)}</p>
+          `;
+
+          const button = document.createElement("button");
+          button.textContent = "REQUEST";
+          button.style.background = "red";
+          button.style.color = "white";
+          button.onclick = () => handleBattleRequest(entry);
+
+          box.appendChild(button);
+          modal.appendChild(box);
+          modal.onclick = () => document.body.removeChild(modal);
+          document.body.appendChild(modal);
+        };
     
-            </div>`;
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };

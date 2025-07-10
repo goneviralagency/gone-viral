@@ -111,11 +111,11 @@
   console.debug("⏪ Declining battle:", { id, date, start_time });
 
   // Delete the battle record
-  const { error: battleError } = await supabase
+  const { error: delError } = await supabase
     .from("battles")
     .delete()
     .eq("id", id);
-  console.debug("🗑️ Battle delete error:", battleError);
+  console.debug("🗑️ Battle delete error:", delError);
 
   // Update availability (requires WHERE clause)
   const { data: availData, error: availError } = await supabase
@@ -127,7 +127,7 @@
 
   console.debug("📦 Availability update result:", { availData, availError });
 
-  if (battleError || availError) {
+  if (delError || availError) {
     alert("Failed to decline battle or update availability.");
   } else {
     alert("Battle declined and availability set to available.");
@@ -144,7 +144,7 @@
         .eq("date", date)
         .eq("start_time", start_time);
 
-      if (battleError || availError) alert("Failed to decline battle or update availability.");
+      if (delError || availError) alert("Failed to decline battle or update availability.");
       else {
         alert("Battle declined and availability set to available.");
         loadIncomingBattles();

@@ -1,122 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Battle Dashboard</title>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f2f4f8;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-    }
-    h2 {
-      font-size: 1.5rem;
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 8px;
-    }
-    .battle-card {
-      background: #fff;
-      padding: 16px;
-      margin: 12px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-    .battle-card p {
-      margin: 6px 0;
-    }
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      margin-top: 8px;
-      margin-right: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .accept { background: #28a745; color: white; }
-    .decline { background: #dc3545; color: white; }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Incoming Battles</h2>
-    <div id="incoming"></div>
-  </div>
-
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient(
-      'https://dptolytfqrdzhvdlntfb.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
-    );
-
-    let currentUser = null;
-
-    async function loadUser() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      console.debug("🔐 User session:", user, error);
-      if (!user) return alert("Not logged in");
-      currentUser = user;
-      loadIncomingBattles();
-    }
-
-    async function loadIncomingBattles() {
-      const container = document.getElementById("incoming");
-      container.innerHTML = "";
-      const { data, error } = await supabase
-        .from("battles")
-        .select("*")
-        .eq("recipient_id", currentUser.id)
-        .eq("recipient_confirm", "pending")
-        .eq("status", "Request Sent");
-      console.debug("📥 Incoming battles:", { data, error });
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p>No incoming battles.</p>";
-        return;
-      }
-
-      data.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "battle-card";
-        div.innerHTML = `
-          <p><strong>@${b.requester_username}</strong></p>
-          <p>Date: ${b.date}</p>
-          <p>Time: ${b.time}</p>
-          <button class="accept">Accept</button>
-          <button class="decline">Decline</button>
-        `;
-        div.querySelector(".accept").addEventListener("click", () => acceptBattle(b.id, b.date, b.start_time));
-        div.querySelector(".decline").addEventListener("click", () => declineBattle(b.id, b.date, b.start_time));
-        container.appendChild(div);
-      });
-    }
-
-    window.acceptBattle = async function(id, date, start_time) {
-      console.debug("✅ Accepting battle:", { id, date, start_time });
-      await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
-      await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
-      alert("Battle accepted and availability updated.");
-      loadIncomingBattles();
-    }
-
-    window.declineBattle = async function(id, date, start_time) {
-      console.debug("❌ Declining battle:", { id, date, start_time });
-      await supabase.from("battles").delete().eq("id", id);
-      await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
-      alert("Battle declined and availability updated.");
-      loadIncomingBattles();
-    }
-
-    loadUser();
-    setInterval(loadIncomingBattles, 60000);
-  </script>
+  <p>Error: Unable to retrieve dashboard content.</p>
 </body>
 </html>

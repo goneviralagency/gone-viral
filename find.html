@@ -151,7 +151,7 @@ async function renderCalendar(dateStr) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const { data } = await supabase.from("availability_with_user").select("date, start_time, end_time, user_id, month, diamond_range, timezone, tiktok_username").eq("month", monthKey).neq("user_id", userId);
+  const { data } = await supabase.from("availability_with_user").select("date, start_time, end_time, user_id, month, timezone, tiktok_username, agency, diamond_range").eq("month", monthKey).neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
     if (!grouped[entry.date]) grouped[entry.date] = [];

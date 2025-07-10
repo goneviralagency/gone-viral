@@ -195,7 +195,6 @@ button {
 <select id="monthSelector"></select>
 <div id="calendar"></div>
 <button id="clear-all" style="margin-top:20px;margin-right:10px;padding:10px 20px;background:red;color:white;">Clear All</button>
-<button id="save-all" style="margin-top:20px;padding:10px 20px;background:green;color:white;">Save All</button>
 
 </div>
 <script type="module">
@@ -398,32 +397,7 @@ renderCalendar(monthSelector.value);
 
 const savedAvailabilities = [];
 
-document.getElementById("save-all").addEventListener("click", async () => {
-  if (savedAvailabilities.length === 0) {
-    alert("No availability selected.");
-    return;
-  }
 
-  const userId = localStorage.getItem("gv_user_id");
-  if (!userId) return alert("User not logged in.");
-
-  const inserts = savedAvailabilities.map(entry => ({
-  user_id: userId,
-  date: entry.date,
-  month: entry.month,
-  start_time: entry.start_time,
-  end_time: entry.end_time,
-  diamond_range: entry.diamond_range,
-  timezone: entry.timezone
-}));
-
-  const { error } = await supabase.from("availability").upsert(inserts);
-  if (error) return alert("Failed to save: " + error.message);
-
-  const summary = savedAvailabilities.map(a =>
-    `${a.date}: ${a.start_time} - ${a.end_time}`).join("\n");
-  alert("Saved Availability:\n" + summary);
-});
 
 
 document.getElementById("clear-all").addEventListener("click", async () => {

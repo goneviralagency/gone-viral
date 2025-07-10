@@ -45,6 +45,7 @@
 <h1>Choose Your Availability</h1>
 <select id="monthSelector"></select>
 <div id="calendar"></div>
+<button id="clear-all" style="margin-top:20px;margin-right:10px;padding:10px 20px;background:red;color:white;">Clear All</button>
 <button id="save-all" style="margin-top:20px;padding:10px 20px;">Save All</button>
 
 <script type="module">
@@ -204,6 +205,26 @@ document.getElementById("save-all").addEventListener("click", async () => {
   const summary = savedAvailabilities.map(a =>
     `${a.date}: ${a.start_time} - ${a.end_time}`).join("\n");
   alert("Saved Availability:\n" + summary);
+});
+
+
+document.getElementById("clear-all").addEventListener("click", async () => {
+  const userId = localStorage.getItem("gv_user_id");
+  if (!userId) return alert("User not logged in.");
+  const selectedDate = new Date(document.getElementById("monthSelector").value);
+  const month = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}`;
+  const confirmed = confirm("This will remove all availability for " + month + ". Continue?");
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("availability")
+    .delete()
+    .eq("user_id", userId)
+    .eq("month", month);
+
+  if (error) return alert("Failed to clear: " + error.message);
+  alert("All availability cleared for " + month);
+  renderCalendar(document.getElementById("monthSelector").value);
 });
 
 </script>

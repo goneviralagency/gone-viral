@@ -45,6 +45,7 @@
 <h1>Choose Your Availability</h1>
 <select id="monthSelector"></select>
 <div id="calendar"></div>
+<button id="save-all" style="margin-top:20px;padding:10px 20px;">Save All</button>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -156,6 +157,7 @@ async function renderCalendar(dateStr) {
       box.querySelector("#submit-time").onclick = async () => {
         const start = startTime.value;
         const end = endTime.value;
+        savedAvailabilities.push({ date: dateISO, month: `${year}-${String(month + 1).padStart(2, '0')}`, start_time: start, end_time: end });
         await supabase.from("availability").upsert({
           user_id: userId,
           date: dateISO,
@@ -176,6 +178,34 @@ async function renderCalendar(dateStr) {
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
 renderCalendar(monthSelector.value);
+
+const savedAvailabilities = [];
+
+document.getElementById("save-all").addEventListener("click", async () => {
+  if (savedAvailabilities.length === 0) {
+    alert("No availability selected.");
+    return;
+  }
+
+  const userId = localStorage.getItem("gv_user_id");
+  if (!userId) return alert("User not logged in.");
+
+  const inserts = savedAvailabilities.map(entry => ({
+    user_id: userId,
+    date: entry.date,
+    month: entry.month,
+    start_time: entry.start_time,
+    end_time: entry.end_time
+  }));
+
+  const { error } = await supabase.from("availability").upsert(inserts);
+  if (error) return alert("Failed to save: " + error.message);
+
+  const summary = savedAvailabilities.map(a =>
+    `${a.date}: ${a.start_time} - ${a.end_time}`).join("\n");
+  alert("Saved Availability:\n" + summary);
+});
+
 </script>
 
 </body>

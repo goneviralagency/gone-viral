@@ -278,6 +278,7 @@ async function renderCalendar(dateStr) {
         tag.textContent = safeRange;
 
         tag.onclick = () => {
+  const entry = e;
           const modal = document.createElement("div");
           modal.className = "popup";
           modal.innerHTML = `

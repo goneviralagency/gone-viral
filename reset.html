@@ -40,7 +40,7 @@
     window.resetAvailability = async function () {
       const { data, error } = await supabase
         .from("availability")
-        .update({ status: "available" });
+        .update({ status: "available" }).neq("id", "");
 
       if (error) {
         alert("Error: " + error.message);

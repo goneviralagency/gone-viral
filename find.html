@@ -242,7 +242,7 @@ async function renderCalendar(dateStr) {
         const colorClass = getColorClass(userLevel, oppLevel);
         const tag = document.createElement("span");
         tag.className = `tag ${colorClass}`;
-        tag.textContent = e.diamond_range;
+        tag.textContent = e.diamond_range || "0-10K";
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";

@@ -95,6 +95,9 @@
     <div id="calendar"></div>
   </div>
 
+
+
+
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
@@ -103,8 +106,31 @@ const supabase = createClient(
 );
 
 const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
 const calendar = document.getElementById("calendar");
 const monthSelector = document.getElementById("monthSelector");
+
+let currentUser = null;
+let currentRange = "0-10K";
+
+function getRangeLevel(range) {
+  return levels.indexOf(range);
+}
+
+function getColorClass(userLevel, oppLevel) {
+  if (userLevel === oppLevel) return "green";
+  if (userLevel < oppLevel) return "red";
+  return "orange";
+}
+
+function convertToLocalTime(timeStr, timezone) {
+  try {
+    const date = new Date(`1970-01-01T${timeStr}:00Z`);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone });
+  } catch {
+    return timeStr;
+  }
+}
 
 function generateMonthOptions() {
   const now = new Date();
@@ -118,22 +144,46 @@ function generateMonthOptions() {
   }
 }
 
-function getRangeLevel(range) {
-  const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];
-  return levels.indexOf(range);
-}
+async function loadUserAndSetupUI() {
+  const { data: { user } } = await supabase.auth.getUser();
+  currentUser = user;
+  const userId = user?.id;
 
-function getColorClass(userLevel, targetLevel) {
-  if (userLevel === targetLevel) return "green";
-  if (targetLevel < userLevel) return "orange";
-  return "red";
+  const { data } = await supabase.from("users").select("diamond_range").eq("id", userId).single();
+  currentRange = data?.diamond_range || "0-10K";
+
+  const selector = document.createElement("select");
+  selector.id = "diamondRangeSelector";
+  levels.forEach(lvl => {
+    const opt = document.createElement("option");
+    opt.value = lvl;
+    opt.text = lvl;
+    if (lvl === currentRange) opt.selected = true;
+    selector.appendChild(opt);
+  });
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "Save Range";
+  saveBtn.onclick = async () => {
+    const newRange = document.getElementById("diamondRangeSelector").value;
+    const { error } = await supabase.from("users").update({ diamond_range: newRange }).eq("id", userId);
+    if (!error) {
+      currentRange = newRange;
+      renderCalendar(monthSelector.value);
+    }
+  };
+
+  const top = document.querySelector(".container");
+  top.insertBefore(document.createTextNode("Your Diamond Range:"), monthSelector);
+  top.insertBefore(selector, monthSelector);
+  top.insertBefore(saveBtn, monthSelector);
+  top.insertBefore(document.createElement("br"), monthSelector);
 }
 
 async function renderCalendar(dateStr) {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
-  const currentRange = user?.user_metadata?.diamond_range || "0-10K";
   const userLevel = getRangeLevel(currentRange);
+  const userId = currentUser?.id;
+  const userTZ = currentUser?.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const selected = new Date(dateStr);
   const year = selected.getFullYear();
@@ -151,16 +201,15 @@ async function renderCalendar(dateStr) {
   const firstDay = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const { data } = await supabase.from("availability").select("*").eq("month", monthKey).neq("user_id", userId);
+  const { data } = await supabase.from("availability_with_user").select("*").eq("month", monthKey).neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
-    if (!grouped[entry.date]) grouped[entry.date] = [];
-    grouped[entry.date].push(entry);
+    const key = entry.date;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
   });
 
-  for (let i = 0; i < firstDay; i++) {
-    calendar.appendChild(document.createElement("div"));
-  }
+  for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
 
   for (let day = 1; day <= totalDays; day++) {
     const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -170,25 +219,30 @@ async function renderCalendar(dateStr) {
 
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
+        const safeRange = e.diamond_range || "0-10K";
+        const oppLevel = getRangeLevel(safeRange);
+        const colorClass = getColorClass(userLevel, oppLevel);
+
         const tag = document.createElement("span");
-        const level = getRangeLevel(e.diamond_range);
-        const colorClass = getColorClass(userLevel, level);
         tag.className = `tag ${colorClass}`;
-        tag.textContent = e.diamond_range;
+        tag.textContent = safeRange;
+
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
           modal.innerHTML = `
             <div class="popup-box">
               <h3>@${e.tiktok_username || "Unknown"}</h3>
+              <p><strong>Diamond Range:</strong> ${safeRange}</p>
+              <p><strong>Timezone:</strong> ${e.timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${e.start_time} - ${e.end_time}</p>
-              <p><strong>Timezone:</strong> ${e.timezone}</p>
-              <button onclick="alert('Request battle')">REQUEST</button>
+              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
+              <button onclick="alert('Request Sent!')">REQUEST</button>
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };
+
         cell.appendChild(tag);
       });
     }
@@ -199,7 +253,11 @@ async function renderCalendar(dateStr) {
 
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
+await loadUserAndSetupUI();
 renderCalendar(monthSelector.value);
 </script>
+
+
+
 </body>
 </html>

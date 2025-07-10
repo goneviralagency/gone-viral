@@ -222,6 +222,29 @@ window.showSignup = showSignup;
 window.showLogin = showLogin;
 window.resetPassword = resetPassword;
 window.logout = logout;
+async function cancelBattle() {
+  const battleId = document.getElementById("cancel-battle-id")?.value;
+  const reason = document.getElementById("cancel-reason")?.value;
+  const { data: { user } } = await client.auth.getUser();
+
+  const { error } = await client.from("cancellations").insert({
+    user_id: user.id,
+    battle_id: battleId,
+    reason
+  });
+
+  if (error) return alert("Failed to cancel.");
+
+  const { data: cancels } = await client.from("cancellations").select("*").eq("user_id", user.id);
+  if (cancels.length >= 3) {
+    await client.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...user.user_metadata, restricted: true }
+    });
+    alert("You have been flagged due to 3+ cancellations.");
+  } else {
+    alert("Cancellation submitted.");
+  }
+}
 window.cancelBattle = cancelBattle;
 window.requestBattle = requestBattle;
 window.clearRestriction = clearRestriction;

@@ -94,6 +94,7 @@
 <h1>Find Available Creators</h1>
 <div id="diamondRangeWrapper" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;"><span style="font-weight: bold;">Your Diamond Range:</span></div><select id="monthSelector"></select>
 <div id="calendar"></div>
+<div id="confirmationBadge" style="display:none;position:fixed;bottom:20px;right:20px;background:#28a745;color:#fff;padding:10px 20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.3);z-index:1000;">Request Sent ✔️</div>
 </div>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -269,48 +270,7 @@ if (!data || data.length === 0) {
               <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)}</p>
               
     <button id="confirmRequestBtn">REQUEST</button>
-    <script>
-      setTimeout(() => {
-        document.getElementById("confirmRequestBtn").onclick = async function () {
-          const selected_time = e.start_time;
-          const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
-          const requesterAgency = currentUser?.user_metadata?.agency || "N/A";
-
-          // 1. Update availability record to filled
-          const { error: updateError } = await supabase
-            .from("availability")
-            .update({ status: "filled" })
-            .eq("user_id", e.user_id)
-            .eq("date", e.date)
-            .eq("start_time", e.start_time);
-
-          // 2. Insert into battles
-          const { error: insertError } = await supabase.from("battles").insert([{
-            requester_id: currentUser.id,
-            recipient_id: e.user_id,
-            date: e.date,
-            time: selected_time,
-            status: "Request Sent",
-            requester_timezone: userTZ,
-            recipient_timezone: e.user_timezone || "N/A",
-            requester_range: currentRange,
-            recipient_range: e.diamond_range || "Unknown",
-            requester_username: requesterUsername,
-            recipient_username: e.tiktok_username || "Unknown",
-            requester_agency: requesterAgency,
-            recipient_agency: e.agency || "N/A"
-          }]);
-
-          if (updateError || insertError) {
-            console.error("Error:", updateError || insertError);
-            alert("❌ Failed to send request.");
-          } else {
-            alert("✅ Request successfully sent.");
-            document.body.removeChild(modal);
-          }
-        };
-      }, 100);
-    </script>
+    
     
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);

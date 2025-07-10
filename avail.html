@@ -75,6 +75,12 @@
   }
 
   async function renderCalendar(dateStr) {
+    const userId = localStorage.getItem("gv_user_id");
+    if (!userId) {
+      alert("User not logged in.");
+      return;
+    }
+
     const selectedDate = new Date(dateStr);
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -95,10 +101,13 @@
       calendar.appendChild(empty);
     }
 
-    const { data: bookedDates } = await supabase
+    const { data: bookedDates, error } = await supabase
       .from("availability")
       .select("*")
-      .eq("month", `${year}-${String(month + 1).padStart(2, "0")}`);
+      .eq("month", `${year}-${String(month + 1).padStart(2, "0")}`)
+      .eq("user_id", userId);
+
+    if (error) console.error("Supabase error:", error.message);
 
     for (let day = 1; day <= totalDays; day++) {
       const cell = document.createElement("div");
@@ -106,7 +115,7 @@
       const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       cell.textContent = day;
 
-      if (bookedDates.some(d => d.date === dateISO)) {
+      if (bookedDates && bookedDates.some(d => d.date === dateISO)) {
         cell.classList.add("booked");
       }
 
@@ -116,6 +125,7 @@
         if (!start || !end) return;
 
         await supabase.from("availability").upsert({
+          user_id: userId,
           date: dateISO,
           month: `${year}-${String(month + 1).padStart(2, "0")}`,
           start_time: start,

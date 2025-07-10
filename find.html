@@ -244,63 +244,15 @@ async function renderCalendar(dateStr) {
         tag.onclick = () => {
           const modal = document.createElement("div");
           modal.className = "popup";
-          
-          modal = document.createElement("div");
-          modal.className = "popup";
-
-          const box = document.createElement("div");
-          box.className = "popup-box";
-
-          box.innerHTML = `
-            <h3>@${e.tiktok_username || "Unknown"}</h3>
-            <p><strong>Diamond Range:</strong> ${safeRange}</p>
-            <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
-            <p><strong>Date:</strong> ${e.date}</p>
-          `;
-
-          const timeSelect = document.createElement("select");
-          const start = e.start_time;
-          const end = e.end_time;
-
-          const toMinutes = t => {
-            const [h, m] = t.split(":").map(Number);
-            return h * 60 + m;
-          };
-
-          const toTimeStr = m => {
-            const hh = String(Math.floor(m / 60)).padStart(2, '0');
-            const mm = String(m % 60).padStart(2, '0');
-            return `${hh}:${mm}`;
-          };
-
-          const startM = toMinutes(start);
-          const endM = toMinutes(end);
-
-          for (let t = startM; t < endM; t += 30) {
-            const opt = document.createElement("option");
-            opt.value = toTimeStr(t);
-            opt.textContent = toTimeStr(t);
-            timeSelect.appendChild(opt);
-          }
-
-          const button = document.createElement("button");
-          button.textContent = "REQUEST";
-          button.style.background = "red";
-          button.style.color = "white";
-          button.onclick = () => {
-            const time = timeSelect.value;
-            const confirm = document.createElement("p");
-            confirm.textContent = `Selected Time: ${time}`;
-            confirm.style.marginTop = "10px";
-            box.appendChild(confirm);
-          };
-
-          box.appendChild(timeSelect);
-          box.appendChild(button);
-          modal.appendChild(box);
-          modal.onclick = () => document.body.removeChild(modal);
-          document.body.appendChild(modal);
-
+          modal.innerHTML = `
+            <div class="popup-box">
+              <h3>@${e.tiktok_username || "Unknown"}</h3>
+              <p><strong>Diamond Range:</strong> ${safeRange}</p>
+              <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
+              <p><strong>Date:</strong> ${e.date}</p>
+              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
+              <button onclick="alert('Request Sent!')">REQUEST</button>
+            </div>`;
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };

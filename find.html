@@ -289,8 +289,10 @@ async function renderCalendar(dateStr) {
           button.style.color = "white";
           button.onclick = () => {
             const time = timeSelect.value;
-            handleBattleRequest({ ...e, selected_time: time });
-            document.body.removeChild(modal);
+            const confirm = document.createElement("p");
+            confirm.textContent = `Selected Time: ${time}`;
+            confirm.style.marginTop = "10px";
+            box.appendChild(confirm);
           };
 
           box.appendChild(timeSelect);

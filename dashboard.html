@@ -163,6 +163,7 @@
             <p>Time: ${battle.time}</p>
             <p>Timezone: ${battle.requester_timezone}</p>
             <p>Diamond Range: ${battle.requester_range}</p>
+    <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')" style="background:#28a745;">ACCEPT</button>
             
           `;
           container.appendChild(div);
@@ -191,6 +192,7 @@
             <p>Time: ${battle.time}</p>
             <p>Timezone: ${battle.requester_timezone}</p>
             <p>Diamond Range: ${battle.requester_range}</p>
+    <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')" style="background:#28a745;">ACCEPT</button>
           `;
           container.appendChild(div);
         });
@@ -201,13 +203,9 @@
 
     window.confirmBattle = async function (id, requesterId) {
   await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
-  await supabase.from("notifications").insert({
-    user_id: requesterId,
-    type: "Battle Confirmed",
-    message: "Your battle request has been confirmed."
-  });
-  alert("BATTLE CONFIRMED");
+  alert("YOUR BATTLE HAS BEEN CONFIRMED!");
   loadBattleRequests();
+  loadScheduledBattles();
   loadScheduledBattles();
       loadScheduledBattles();
     };

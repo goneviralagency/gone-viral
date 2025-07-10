@@ -81,7 +81,6 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadDashboard() {
   console.log('[DEBUG] Loading Dashboard...');
-      const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       document.getElementById('login-module').classList.add('hidden');
       document.getElementById('signup-module').classList.add('hidden');
@@ -106,7 +105,6 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   form.addEventListener("submit", async function(e) {
     e.preventDefault();
-    const { data: { user } } = await client.auth.getUser();
     if (!user) return alert("Not logged in");
 
     const timezone = user.user_metadata?.timezone || "UTC";
@@ -124,19 +122,13 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
     }
 
-    alert("Availability saved!");
   });
 }
 
-    alert("Availability saved!");
-    alert("Availability saved!");
 
-      alert("Availability saved!");
-      alert("Availability saved!");
 
     async function loadCalendar() {
   console.log('[DEBUG] Loading Calendar View...');
-      const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       const currentRange = user.user_metadata?.diamond_range || "0-10K";
 
@@ -182,7 +174,6 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
   if (!confirmed) return;
 
-  const { data: { user } } = await client.auth.getUser();
   const scheduledTime = new Date();
   scheduledTime.setHours(parseInt(start.split(":")[0]));
   scheduledTime.setMinutes(parseInt(start.split(":")[1]));
@@ -198,16 +189,6 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   if (error) return alert("Error saving battle");
   alert("Battle requested!");
 }
-      for (const u of users) {
-        const meta = u.user_metadata;
-        const div = document.createElement("div");
-        div.className = "bg-gray-800 p-2 rounded";
-        div.innerHTML = `
-          <p>Email: ${u.email}</p>
-          <p>Username: ${meta?.tiktok_username || "N/A"}</p>
-          <p>Restricted: ${meta?.restricted ? "✅" : "❌"}</p>
-          <button onclick="clearRestriction('${u.id}')" class="mt-1 bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-sm">Clear Restriction</button>`;
-        container.appendChild(div);
       }
       document.getElementById("admin-panel").classList.remove("hidden");
 
@@ -241,7 +222,6 @@ window.toggleMenu = toggleMenu;
 </body>
 </html>
 
-  const { data: { user } } = await client.auth.getUser();
   if (!user || user.email !== "admin@goneviral.com") return;
 
 }
@@ -355,7 +335,6 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadDashboard() {
   console.log('[DEBUG] Loading Dashboard...');
-      const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       document.getElementById('login-module').classList.add('hidden');
       document.getElementById('signup-module').classList.add('hidden');
@@ -380,7 +359,6 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   form.addEventListener("submit", async function(e) {
     e.preventDefault();
-    const { data: { user } } = await client.auth.getUser();
     if (!user) return alert("Not logged in");
 
     const timezone = user.user_metadata?.timezone || "UTC";
@@ -398,19 +376,13 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
     }
 
-    alert("Availability saved!");
   });
 }
 
-    alert("Availability saved!");
-    alert("Availability saved!");
 
-      alert("Availability saved!");
-      alert("Availability saved!");
 
     async function loadCalendar() {
   console.log('[DEBUG] Loading Calendar View...');
-      const { data: { user } } = await client.auth.getUser();
       if (!user) return;
       const currentRange = user.user_metadata?.diamond_range || "0-10K";
 
@@ -456,7 +428,6 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
   if (!confirmed) return;
 
-  const { data: { user } } = await client.auth.getUser();
   const scheduledTime = new Date();
   scheduledTime.setHours(parseInt(start.split(":")[0]));
   scheduledTime.setMinutes(parseInt(start.split(":")[1]));
@@ -472,16 +443,6 @@ async function requestBattle(opponentId, day, start, end, timezone) {
   if (error) return alert("Error saving battle");
   alert("Battle requested!");
 }
-      for (const u of users) {
-        const meta = u.user_metadata;
-        const div = document.createElement("div");
-        div.className = "bg-gray-800 p-2 rounded";
-        div.innerHTML = `
-          <p>Email: ${u.email}</p>
-          <p>Username: ${meta?.tiktok_username || "N/A"}</p>
-          <p>Restricted: ${meta?.restricted ? "✅" : "❌"}</p>
-          <button onclick="clearRestriction('${u.id}')" class="mt-1 bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-sm">Clear Restriction</button>`;
-        container.appendChild(div);
       }
       document.getElementById("admin-panel").classList.remove("hidden");
 
@@ -515,14 +476,12 @@ window.toggleMenu = toggleMenu;
 </body>
 </html>
 
-  const { data: { user } } = await client.auth.getUser();
   if (!user || user.email !== "admin@goneviral.com") return;
 
 }
 
 }
 
-async function loadAdminPanel() {
   const { data: { user } } = await client.auth.getUser();
   if (!user || user.email !== "admin@goneviral.com") return;
 

@@ -136,16 +136,19 @@
     window.acceptBattle = async function(id, date, start_time) {
       console.debug("✅ Accepting battle:", { id, date, start_time });
       await supabase.from("battles").update({ recipient_confirm: "confirmed" }).eq("id", id);
-      await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+      const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+  console.debug('📦 Availability update result:', { availData, availError });
       alert("Battle accepted and availability updated.");
       loadIncomingBattles();
       loadScheduledBattles();
     }
 
     window.declineBattle = async function(id, date, start_time) {
+  console.debug('⏪ Declining battle with:', { id, date, start_time });
       console.debug("❌ Declining battle:", { id, date, start_time });
       await supabase.from("battles").delete().eq("id", id);
-      await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+      const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+  console.debug('📦 Availability update result:', { availData, availError });
       alert("Battle declined and availability updated.");
       loadIncomingBattles();
     }
@@ -153,7 +156,8 @@
     window.cancelBattle = async function(id, date, start_time) {
       console.debug("⚠️ Cancelling battle:", { id, date, start_time });
       await supabase.from("battles").delete().eq("id", id);
-      await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+      const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
+  console.debug('📦 Availability update result:', { availData, availError });
       alert("Battle cancelled and availability restored.");
       loadScheduledBattles();
     }

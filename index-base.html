@@ -103,10 +103,9 @@
   </div>
 
   <script>
-const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.client.co';
+const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.supabase.co';
     const SUPABASE_ANON_KEY = 'your-anon-key-here';  // Replace this with your actual anon key
-    const { createClient } = supabase;
-const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function toggleMenu() {
       document.getElementById("nav-menu").classList.toggle("hidden");
@@ -136,7 +135,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     async function login() {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-      const { error } = await client.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return alert(error.message);
       loadDashboard();
     }
@@ -150,7 +149,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const diamond_range = document.getElementById('signup-diamonds').value;
       const agency = document.getElementById('signup-agency').value;
 
-      const { data, error } = await client.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email, password,
         options: {
           data: { name, tiktok_username: tiktok, timezone, diamond_range, agency }
@@ -162,18 +161,18 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function resetPassword() {
       const email = prompt("Enter your email:");
-      const { error } = await client.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) alert(error.message);
       else alert("Check your email for reset link.");
     }
 
     async function logout() {
-      await client.auth.signOut();
+      await supabase.auth.signOut();
       location.reload();
     }
 
     async function loadDashboard() {
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       document.getElementById('login-module').classList.add('hidden');
       document.getElementById('signup-module').classList.add('hidden');
@@ -198,7 +197,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.getElementById("availability-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return alert("Not logged in");
 
       const timezone = user.user_metadata?.timezone || "UTC";
@@ -209,7 +208,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const start = form[`start-${day}`].value;
         const end = form[`end-${day}`].value;
         if (start && end) {
-          await client.from("availability").insert({
+          await supabase.from("availability").insert({
             user_id: user.id,
             day_of_week: day,
             start_time: start,
@@ -223,7 +222,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     });
 
     async function loadCalendar() {
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const currentRange = user.user_metadata?.diamond_range || "0-10K";
 
@@ -267,11 +266,11 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     async function requestBattle(opponentId, day, start, end, timezone) {
       const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
       if (!confirmed) return;
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       const scheduledTime = new Date();
       scheduledTime.setHours(parseInt(start.split(":")[0]));
       scheduledTime.setMinutes(parseInt(start.split(":")[1]));
-      const { error } = await client.from("battles").insert({
+      const { error } = await supabase.from("battles").insert({
         creator_a_id: user.id,
         creator_b_id: opponentId,
         scheduled_at: scheduledTime.toISOString(),
@@ -285,16 +284,16 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     async function cancelBattle() {
       const battleId = document.getElementById("cancel-battle-id").value;
       const reason = document.getElementById("cancel-reason").value;
-      const { data: { user } } = await client.auth.getUser();
-      const { error } = await client.from("cancellations").insert({
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("cancellations").insert({
         user_id: user.id,
         battle_id: battleId,
         reason
       });
       if (error) return alert("Failed to cancel.");
-      const { data: cancels } = await client.from("cancellations").select("*").eq("user_id", user.id);
+      const { data: cancels } = await supabase.from("cancellations").select("*").eq("user_id", user.id);
       if (cancels.length >= 3) {
-        await client.auth.admin.updateUserById(user.id, {
+        await supabase.auth.admin.updateUserById(user.id, {
           user_metadata: { ...user.user_metadata, restricted: true }
         });
         alert("You have been flagged due to 3+ cancellations.");
@@ -304,9 +303,9 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function loadAdminPanel() {
-      const { data: { user } } = await client.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user || user.email !== "admin@goneviral.com") return;
-      const { data: users } = await client.auth.admin.listUsers();
+      const { data: users } = await supabase.auth.admin.listUsers();
       const container = document.getElementById("admin-user-list");
       container.innerHTML = "";
       for (const u of users) {
@@ -324,7 +323,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     async function clearRestriction(uid) {
-      const { error } = await client.auth.admin.updateUserById(uid, {
+      const { error } = await supabase.auth.admin.updateUserById(uid, {
         user_metadata: { restricted: false }
       });
       if (error) return alert("Failed to clear restriction");
@@ -333,7 +332,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     window.addEventListener('load', async () => {
-      const { data: { session } } = await client.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) loadDashboard();
     });
     // This section will be appended in the next step due to size

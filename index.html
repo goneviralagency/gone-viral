@@ -101,26 +101,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         </div>`).join("") + `<button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-500 p-2 rounded w-full">Save Availability</button>`;
     }
 
-    document.getElementById("availability-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const { data: { user } } = await client.auth.getUser();
-      if (!user) return alert("Not logged in");
-
-      const timezone = user.user_metadata?.timezone || "UTC";
-      const form = e.target;
-      const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-      for (let day of days) {
-        const start = form[`start-${day}`].value;
-        const end = form[`end-${day}`].value;
-        if (start && end) {
-          await client.from("availability").insert({
-            user_id: user.id,
-            day_of_week: day,
-            start_time: start,
-            end_time: end,
-            timezone
-          });
+    
         }
       }
 

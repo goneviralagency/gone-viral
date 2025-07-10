@@ -219,7 +219,8 @@ async function renderCalendar(dateStr) {
 
     if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
-        const safeRange = e.diamond_range || "0-10K";
+        const safeRange = e.diamond_range ?? "MISSING";
+        console.log("AVAILABILITY RANGE FOR", e.user_id, "=", safeRange);
         const oppLevel = getRangeLevel(safeRange);
         const colorClass = getColorClass(userLevel, oppLevel);
 

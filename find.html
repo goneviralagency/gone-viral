@@ -250,7 +250,7 @@ async function renderCalendar(dateStr) {
               <p><strong>Diamond Range:</strong> ${safeRange}</p>
               <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
+              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)}</p>
               <button onclick="alert('Request Sent!')">REQUEST</button>
             </div>`;
           modal.onclick = () => document.body.removeChild(modal);

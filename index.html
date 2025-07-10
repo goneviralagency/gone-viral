@@ -188,26 +188,8 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   scheduledTime.setMinutes(parseInt(start.split(":")[1]));
 
   const { error } = await client.from("battles").insert({
-    creator_a_id: user.id,
-    creator_b_id: opponentId,
-    scheduled_at: scheduledTime.toISOString(),
-    timezone,
-    battle_confirmed_by_both: false
-  });
-
-  if (error) return alert("Error saving battle");
-  alert("Battle requested!");
-});
-        alert("You have been flagged due to 3+ cancellations.");
-      } else {
-        alert("Cancellation submitted.");
-
-    async function loadAdminPanel() {
-      const { data: { user } } = await client.auth.getUser();
-      if (!user || user.email !== "admin@goneviral.com") return;
-      const { data: users } = await client.auth.admin.listUsers();
-      const container = document.getElementById("admin-user-list");
-      container.innerHTML = "";
+alert("Battle requested!");
+}
       for (const u of users) {
         const meta = u.user_metadata;
         const div = document.createElement("div");

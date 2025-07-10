@@ -130,9 +130,13 @@ async function loadUserAndSetupUI() {
   // Place any post-login UI setup logic here
 }
 
+
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUserAndSetupUI();
+  generateMonthOptions();
+  renderCalendar(monthSelector.value);
 });
+
 
   // Constants
   const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];

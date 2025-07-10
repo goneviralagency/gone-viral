@@ -123,6 +123,7 @@
 
 
 
+
 cell.onclick = async () => {
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -144,13 +145,13 @@ cell.onclick = async () => {
 
   const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-  box.innerHTML = \`
-    <h3>Select Time Range</h3>
-    <select id="start-time" style="margin:10px;padding:10px;"></select>
-    <select id="end-time" style="margin:10px;padding:10px;"></select>
-    <br/>
-    <button id="submit-time" style="padding:10px 20px;margin-top:10px;">Submit</button>
-  \`;
+  box.innerHTML = [
+    '<h3>Select Time Range</h3>',
+    '<select id="start-time" style="margin:10px;padding:10px;"></select>',
+    '<select id="end-time" style="margin:10px;padding:10px;"></select>',
+    '<br/>',
+    '<button id="submit-time" style="padding:10px 20px;margin-top:10px;">Submit</button>'
+  ].join("");
 
   modal.appendChild(box);
   document.body.appendChild(modal);
@@ -189,6 +190,8 @@ cell.onclick = async () => {
     cell.classList.add("booked");
     document.body.removeChild(modal);
   };
+};
+
 };
 
 };

@@ -218,8 +218,7 @@ async function renderCalendar(dateStr) {
   .from("availability_with_user")
   .select("*")
   .eq("month", monthKey)
-  .eq("status", "available")
-  .neq("user_id", userId);
+    .neq("user_id", userId);
   const grouped = {};
   data?.forEach(entry => {
     const key = entry.date;

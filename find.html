@@ -1,11 +1,12 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Find Creators</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Find Creators</title>
+<style>
     body {
       font-family: 'Inter', sans-serif;
       background: #f9f9f9;
@@ -89,15 +90,11 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Find Available Creators</h1>
-    <select id="monthSelector"></select>
-    <div id="calendar"></div>
-  </div>
-
-
-
-
+<div class="container">
+<h1>Find Available Creators</h1>
+<div id="diamondRangeWrapper" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;"><span style="font-weight: bold;">Your Diamond Range:</span></div><select id="monthSelector"></select>
+<div id="calendar"></div>
+</div>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
@@ -145,6 +142,22 @@ function generateMonthOptions() {
 }
 
 async function loadUserAndSetupUI() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData?.session;
+
+  if (!session || !session.user) {
+    const email = prompt("Enter your email to login:");
+    const password = prompt("Enter your password:");
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+    if (loginError) {
+      alert("Login failed: " + loginError.message);
+      return;
+    }
+    currentUser = loginData.user;
+  } else {
+    currentUser = session.user;
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
   currentUser = user;
   const userId = user?.id;
@@ -257,8 +270,5 @@ generateMonthOptions();
 await loadUserAndSetupUI();
 renderCalendar(monthSelector.value);
 </script>
-
-
-
 </body>
 </html>

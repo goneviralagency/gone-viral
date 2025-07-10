@@ -250,44 +250,42 @@ async function renderCalendar(dateStr) {
               <p><strong>Diamond Range:</strong> ${safeRange}</p>
               <p><strong>Timezone:</strong> ${e.user_timezone || "N/A"}</p>
               <p><strong>Date:</strong> ${e.date}</p>
-              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)}</p>
+              <p><strong>Time:</strong> ${convertToLocalTime(e.start_time, userTZ)} - ${convertToLocalTime(e.end_time, userTZ)}</p>
               
     <button id="confirmRequestBtn">REQUEST</button>
-    <script>
-      setTimeout(() => {
-        document.getElementById("confirmRequestBtn").onclick = async function () {
-          const selected_time = e.start_time;
-          const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
-          const requesterAgency = currentUser?.user_metadata?.agency || "N/A";
-
-          const { error } = await supabase.from("battles").insert([{
-            requester_id: currentUser.id,
-            recipient_id: e.user_id,
-            date: e.date,
-            time: selected_time,
-            status: "request sent",
-            requester_timezone: userTZ,
-            recipient_timezone: e.user_timezone || "N/A",
-            requester_range: currentRange,
-            recipient_range: safeRange,
-            requester_username: requesterUsername,
-            recipient_username: e.tiktok_username || "Unknown",
-            requester_agency: requesterAgency,
-            recipient_agency: e.agency || "N/A"
-          }]);
-
-          if (error) {
-            console.error("Insert failed:", error);
-            alert("❌ Failed to send request: " + error.message);
-          } else {
-            alert("✅ Request successfully sent for " + selected_time);
-            document.body.removeChild(modal);
-          }
-        };
-      }, 100);
-    </script>
     
             </div>`;
+setTimeout(() => {
+  const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
+  const requesterAgency = currentUser?.user_metadata?.agency || "N/A";
+
+  document.getElementById("confirmRequestBtn").onclick = async function () {
+    const selected_time = e.start_time;
+    const { error } = await supabase.from("battles").insert([{
+      requester_id: currentUser.id,
+      recipient_id: e.user_id,
+      date: e.date,
+      time: selected_time,
+      status: "request sent",
+      requester_timezone: userTZ,
+      recipient_timezone: e.user_timezone || "N/A",
+      requester_range: currentRange,
+      recipient_range: safeRange,
+      requester_username: requesterUsername,
+      recipient_username: e.tiktok_username || "Unknown",
+      requester_agency: requesterAgency,
+      recipient_agency: e.agency || "N/A"
+    }]);
+
+    if (error) {
+      console.error("Insert failed:", error);
+      alert("❌ Failed to send request: " + error.message);
+    } else {
+      alert("✅ Request successfully sent for " + selected_time);
+      document.body.removeChild(modal);
+    }
+  };
+}, 100);
           modal.onclick = () => document.body.removeChild(modal);
           document.body.appendChild(modal);
         };

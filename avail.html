@@ -179,6 +179,7 @@ monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();
 renderCalendar(monthSelector.value);
 
+
 const savedAvailabilities = [];
 
 document.getElementById("save-all").addEventListener("click", async () => {
@@ -187,23 +188,76 @@ document.getElementById("save-all").addEventListener("click", async () => {
     return;
   }
 
-  const userId = localStorage.getItem("gv_user_id");
-  if (!userId) return alert("User not logged in.");
+  const modal = document.createElement("div");
+  modal.style.position = "fixed";
+  modal.style.top = 0;
+  modal.style.left = 0;
+  modal.style.width = "100%";
+  modal.style.height = "100%";
+  modal.style.background = "rgba(0,0,0,0.8)";
+  modal.style.display = "flex";
+  modal.style.alignItems = "center";
+  modal.style.justifyContent = "center";
+  modal.style.zIndex = 1000;
 
-  const inserts = savedAvailabilities.map(entry => ({
-    user_id: userId,
-    date: entry.date,
-    month: entry.month,
-    start_time: entry.start_time,
-    end_time: entry.end_time
-  }));
+  const box = document.createElement("div");
+  box.style.background = "white";
+  box.style.padding = "20px";
+  box.style.borderRadius = "12px";
+  box.style.textAlign = "left";
+  box.style.maxHeight = "80%";
+  box.style.overflowY = "auto";
+  box.style.width = "300px";
 
-  const { error } = await supabase.from("availability").upsert(inserts);
-  if (error) return alert("Failed to save: " + error.message);
+  let html = '<h3>Review & Save Availability</h3><ul style="list-style:none;padding:0;">';
+  savedAvailabilities.forEach((a, i) => {
+    html += `
+      <li style="margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:10px;">
+        <strong>${a.date}</strong><br/>
+        ${a.start_time} - ${a.end_time}<br/>
+        <button onclick="editAvailability(${i})">Edit</button>
+        <button onclick="deleteAvailability(${i})" style="color:red;">Delete</button>
+      </li>`;
+  });
+  html += '</ul><button onclick="submitAvailability()" style="margin-top:10px;">Confirm Save</button>';
+  box.innerHTML = html;
 
-  const summary = savedAvailabilities.map(a =>
-    `${a.date}: ${a.start_time} - ${a.end_time}`).join("\n");
-  alert("Saved Availability:\n" + summary);
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+
+  window.submitAvailability = async () => {
+    const userId = localStorage.getItem("gv_user_id");
+    const inserts = savedAvailabilities.map(entry => ({
+      user_id: userId,
+      date: entry.date,
+      month: entry.month,
+      start_time: entry.start_time,
+      end_time: entry.end_time
+    }));
+    const { error } = await supabase.from("availability").upsert(inserts);
+    if (error) return alert("Failed to save: " + error.message);
+    document.body.removeChild(modal);
+    alert("Saved successfully!");
+  };
+
+  window.editAvailability = (i) => {
+    const newStart = prompt("Edit start time", savedAvailabilities[i].start_time);
+    const newEnd = prompt("Edit end time", savedAvailabilities[i].end_time);
+    if (newStart && newEnd) {
+      savedAvailabilities[i].start_time = newStart;
+      savedAvailabilities[i].end_time = newEnd;
+      document.body.removeChild(modal);
+      document.getElementById("save-all").click();
+    }
+  };
+
+  window.deleteAvailability = (i) => {
+    savedAvailabilities.splice(i, 1);
+    document.body.removeChild(modal);
+    document.getElementById("save-all").click();
+  };
+});
+:\n" + summary);
 });
 
 </script>

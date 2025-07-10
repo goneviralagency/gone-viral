@@ -111,8 +111,8 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const timezone = user.user_metadata?.timezone || "UTC";
     for (let day of days) {
-      const start = form.querySelector(\`[name=start-\${day}]\`).value;
-      const end = form.querySelector(\`[name=end-\${day}]\`).value;
+      const start = form.querySelector(`[name=start-${}day}]`).value;
+      const end = form.querySelector(`[name=end-${}day}]`).value;
       if (start && end) {
         await client.from("availability").insert({
           user_id: user.id,

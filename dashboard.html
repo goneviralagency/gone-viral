@@ -121,6 +121,7 @@
   const { data: availData, error: updateError } = await supabase
     .from("availability")
     .update({ status: "available" })
+    .eq("user_id", currentUser.id)
     .eq("date", date)
     .eq("start_time", start_time)
     .neq("status", "_____");  // safe WHERE clause

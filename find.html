@@ -12,41 +12,41 @@
       background: #f9f9f9;
       color: #222;
       margin: 0;
-    }
+
     h1 {
       font-size: 1.5rem;
       margin: 90px 0 1rem 0;
       text-align: center;
-    }
+
     .container {
       max-width: 800px;
       margin: 0 auto;
       padding: 0 16px;
-    }
+
     #monthSelector {
       display: block;
       margin: 0 auto 1rem;
       padding: 10px;
       border-radius: 8px;
       font-size: 1rem;
-    }
+
     #calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 5px;
-    }
+
     .header {
       font-weight: bold;
       background: #ddd;
       text-align: center;
       padding: 10px;
-    }
+
     .day {
       background: white;
       border: 1px solid #ccc;
       padding: 10px;
       min-height: 80px;
-    }
+
     .tag {
       display: block;
       padding: 4px 6px;
@@ -54,7 +54,7 @@
       border-radius: 6px;
       font-size: 0.8rem;
       cursor: pointer;
-    }
+
     .green { background: #a3eaa3; color: #1e4620; }
     .orange { background: #ffe5b4; color: #7a4a00; }
     .red { background: #f8b0b0; color: #a70000; }
@@ -69,14 +69,14 @@
       justify-content: center;
       align-items: center;
       z-index: 999;
-    }
+
     .popup-box {
       background: white;
       padding: 20px;
       border-radius: 12px;
       text-align: center;
       max-width: 300px;
-    }
+
     .popup-box button {
       margin-top: 10px;
       padding: 10px 20px;
@@ -86,7 +86,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-    }
+
   </style>
 </head>
 <body>
@@ -113,13 +113,11 @@ let currentRange = "0-10K";
 
 function getRangeLevel(range) {
   return levels.indexOf(range);
-}
 
 function getColorClass(userLevel, oppLevel) {
-  if (userLevel === oppLevel) return "green";
-  if (userLevel < oppLevel) return "red";
+
+
   return "orange";
-}
 
 function convertToLocalTime(timeStr, timezone) {
   try {
@@ -127,8 +125,7 @@ function convertToLocalTime(timeStr, timezone) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone });
   } catch {
     return timeStr;
-  }
-}
+
 
 function generateMonthOptions() {
   const now = new Date();
@@ -137,27 +134,24 @@ function generateMonthOptions() {
     const opt = document.createElement("option");
     opt.value = date.toISOString();
     opt.text = date.toLocaleString("default", { month: "long", year: "numeric" });
-    if (i === 0) opt.selected = true;
+
     monthSelector.appendChild(opt);
-  }
-}
+
 
 async function loadUserAndSetupUI() {
   const { data: sessionData } = await supabase.auth.getSession();
   const session = sessionData?.session;
 
-  if (!session || !session.user) {
     const email = prompt("Enter your email to login:");
     const password = prompt("Enter your password:");
     const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) {
+
       alert("Login failed: " + loginError.message);
       return;
-    }
+
     currentUser = loginData.user;
   } else {
     currentUser = session.user;
-  }
 
   const { data: { user } } = await supabase.auth.getUser();
   currentUser = user;
@@ -172,7 +166,7 @@ async function loadUserAndSetupUI() {
     const opt = document.createElement("option");
     opt.value = lvl;
     opt.text = lvl;
-    if (lvl === currentRange) opt.selected = true;
+
     selector.appendChild(opt);
   });
 
@@ -181,10 +175,10 @@ async function loadUserAndSetupUI() {
   saveBtn.onclick = async () => {
     const newRange = document.getElementById("diamondRangeSelector").value;
     const { error } = await supabase.from("users").update({ diamond_range: newRange }).eq("id", userId);
-    if (!error) {
+
       currentRange = newRange;
       renderCalendar(monthSelector.value);
-    }
+
   };
 
   const top = document.querySelector(".container");
@@ -192,7 +186,6 @@ async function loadUserAndSetupUI() {
   top.insertBefore(selector, monthSelector);
   top.insertBefore(saveBtn, monthSelector);
   top.insertBefore(document.createElement("br"), monthSelector);
-}
 
 async function renderCalendar(dateStr) {
   const userLevel = getRangeLevel(currentRange);
@@ -222,7 +215,7 @@ const { data, error } = await supabase
 console.log("Unfiltered data from view:", data, error);
 
 console.log("Fetched availability:", data, "Error:", error);
-if (!data || data.length === 0) {
+
   const info = document.createElement("p");
   info.style.textAlign = "center";
   info.style.marginTop = "20px";
@@ -231,11 +224,10 @@ if (!data || data.length === 0) {
   calendar.appendChild(info);
   return;
 
-  }
   const grouped = {};
   data?.forEach(entry => {
     const key = entry.date;
-    if (!grouped[key]) grouped[key] = [];
+
     grouped[key].push(entry);
   });
 
@@ -247,7 +239,6 @@ if (!data || data.length === 0) {
     cell.className = "day";
     cell.textContent = day;
 
-    if (grouped[dateKey]) {
       grouped[dateKey].forEach(e => {
         const safeRange = e.diamond_range ?? "MISSING";
         console.log("AVAILABILITY RANGE FOR", e.user_id, "=", safeRange);
@@ -275,7 +266,7 @@ if (!data || data.length === 0) {
             </div>`;
 setTimeout(() => {
   const confirmBtn = document.getElementById("confirmRequestBtn");
-  if (!confirmBtn) return;
+
   confirmBtn.onclick = async function () {
     const selected_time = e.start_time;
     const requesterUsername = currentUser?.user_metadata?.tiktok_username || "Unknown";
@@ -304,39 +295,32 @@ setTimeout(() => {
       recipient_agency: e.agency || "N/A"
     }]);
 
-    if (updateError || insertError) {
       console.error("Error:", updateError || insertError);
     } else {
       const badge = document.getElementById("confirmationBadge");
-      if (badge) {
+
         badge.style.display = "block";
         setTimeout(() => { badge.style.display = "none"; }, 3000);
-if (document.querySelector(".popup")) document.querySelector(".popup").remove();
+
 
 const popup = document.querySelector(".popup");
 
-      }
-      
     const popup = document.querySelector(".popup");
-    
-    }
+
   };
 }, 100);
           modal.onclick = () => 
-if (document.querySelector(".popup")) {
+
   document.body.removeChild(document.querySelector(".popup"));
-}
 
           document.body.appendChild(modal);
         };
 
         cell.appendChild(tag);
       });
-    }
 
     calendar.appendChild(cell);
-  }
-}
+
 
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();

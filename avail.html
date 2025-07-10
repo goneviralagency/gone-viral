@@ -113,6 +113,7 @@ async function renderCalendar(dateStr) {
     calendar.appendChild(empty);
   }
 
+  
   for (let day = 1; day <= totalDays; day++) {
     const cell = document.createElement("div");
     cell.className = "day";
@@ -120,23 +121,22 @@ async function renderCalendar(dateStr) {
     cell.textContent = day;
 
     if (bookedDates && bookedDates.some(d => d.date === dateISO)) {
-        cell.classList.add("booked");
+      cell.classList.add("booked");
 
-        const deleteBtn = document.createElement("div");
-        deleteBtn.textContent = "✖";
-        deleteBtn.className = "delete-icon";
-        deleteBtn.onclick = async (e) => {
-          e.stopPropagation();
-          const confirmed = confirm("Remove availability for " + dateISO + "?");
-          if (!confirmed) return;
-          await supabase.from("availability")
-            .delete()
-            .eq("user_id", userId)
-            .eq("date", dateISO);
-          renderCalendar(monthSelector.value);
-        };
-        cell.appendChild(deleteBtn);
-      }
+      const deleteBtn = document.createElement("div");
+      deleteBtn.textContent = "✖";
+      deleteBtn.className = "delete-icon";
+      deleteBtn.onclick = async (e) => {
+        e.stopPropagation();
+        const confirmed = confirm("Remove availability for " + dateISO + "?");
+        if (!confirmed) return;
+        await supabase.from("availability")
+          .delete()
+          .eq("user_id", userId)
+          .eq("date", dateISO);
+        renderCalendar(monthSelector.value);
+      };
+      cell.appendChild(deleteBtn);
     }
 
     cell.onclick = async () => {
@@ -202,6 +202,7 @@ async function renderCalendar(dateStr) {
 
     calendar.appendChild(cell);
   }
+
 
 monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
 generateMonthOptions();

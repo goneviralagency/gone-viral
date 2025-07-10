@@ -145,7 +145,7 @@
 
     window.declineBattle = async function(id, date, start_time) {
   console.debug('⏪ Declining battle with:', { id, date, start_time });
-  const { error: delError } =   console.debug('🗑️ Battle delete:', delError);
+  const { error: delError } =   
       console.debug("❌ Declining battle:", { id, date, start_time });
             const { data: availData, error: availError } = await supabase.from("availability").update({ status: "available" }).eq("date", date).eq("start_time", start_time);
   console.debug('📦 Availability update result:', { availData, availError });

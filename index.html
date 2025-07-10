@@ -181,10 +181,12 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   console.log('[DEBUG] Requesting Battle with:', opponentId, day, start, end, timezone);
   const confirmed = confirm(`Schedule battle with this creator on ${day} at ${start}?`);
   if (!confirmed) return;
+
   const { data: { user } } = await client.auth.getUser();
   const scheduledTime = new Date();
   scheduledTime.setHours(parseInt(start.split(":")[0]));
   scheduledTime.setMinutes(parseInt(start.split(":")[1]));
+
   const { error } = await client.from("battles").insert({
     creator_a_id: user.id,
     creator_b_id: opponentId,
@@ -192,6 +194,7 @@ const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     timezone,
     battle_confirmed_by_both: false
   });
+
   if (error) return alert("Error saving battle");
   alert("Battle requested!");
 });

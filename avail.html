@@ -308,17 +308,53 @@ async function renderCalendar(dateStr) {
       box.querySelector("#submit-time").onclick = async () => {
         const start = startTime.value;
         const end = endTime.value;
-        savedAvailabilities.push({ date: dateISO, month: `${year}-${String(month + 1).padStart(2, '0')}`, start_time: start, end_time: end });
-        await supabase.from("availability").upsert({
-          user_id: userId,
-          date: dateISO,
-          month: `${year}-${String(month + 1).padStart(2, "0")}`,
-          start_time: start,
-          end_time: end
-        });
 
-        cell.classList.add("booked");
-        document.body.removeChild(modal);
+        const { data: userData } = await supabase.auth.getUser();
+        const timezone = userData.user?.user_metadata?.timezone || "UTC";
+
+        // Create and populate diamond range dropdown
+        const diamondOptions = ["0-5K", "5K-20K", "20K+"];
+        const selectDiamond = document.createElement("select");
+        selectDiamond.style.marginTop = "10px";
+        selectDiamond.style.padding = "10px";
+        diamondOptions.forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.textContent = opt;
+          selectDiamond.appendChild(option);
+        });
+        box.appendChild(selectDiamond);
+
+        const confirmButton = document.createElement("button");
+        confirmButton.textContent = "Confirm";
+        confirmButton.style.marginTop = "10px";
+        confirmButton.style.padding = "10px 20px";
+        confirmButton.onclick = async () => {
+          const diamond_range = selectDiamond.value;
+          savedAvailabilities.push({
+            date: dateISO,
+            month: `${year}-${String(month + 1).padStart(2, '0')}`,
+            start_time: start,
+            end_time: end,
+            diamond_range,
+            timezone
+          });
+
+          await supabase.from("availability").upsert({
+            user_id: userId,
+            date: dateISO,
+            month: `${year}-${String(month + 1).padStart(2, "0")}`,
+            start_time: start,
+            end_time: end,
+            diamond_range,
+            timezone
+          });
+
+          cell.classList.add("booked");
+          document.body.removeChild(modal);
+        };
+
+        box.appendChild(confirmButton);
       };
     };
 

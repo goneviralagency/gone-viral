@@ -163,7 +163,7 @@
             <p>Time: ${battle.time}</p>
             <p>Timezone: ${battle.requester_timezone}</p>
             <p>Diamond Range: ${battle.requester_range}</p>
-            <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')">CONFIRM</button>
+            <button onclick="confirmBattle(${battle.id}, '${battle.requester_id}')" style="background:#28a745;">ACCEPT</button>
             <button onclick="declineBattle(${battle.id})" style="background:#dc3545;">DECLINE</button>
           `;
           container.appendChild(div);

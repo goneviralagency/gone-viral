@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Availability</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 90px 16px 0;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    #monthSelector {
+      background: #fff;
+      color: #222;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+    #filterContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .day {
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      min-height: 60px;
+      position: relative;
+    }
+    .header {
+      font-weight: bold;
+      background: #ddd;
+      text-align: center;
+    }
+    .range-tag {
+      display: block;
+      font-size: 0.85rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin-top: 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .green { background: #a3eaa3; }
+    .orange { background: #ffd580; }
+    .red { background: #f29c9c; }
+    .popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .popup-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 300px;
+      text-align: center;
+    }
+    .popup-box button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #007aff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Find Available Creators</h1>
+    <select id="monthSelector"></select>
+    <div id="filterContainer">
+      <label><input type="checkbox" value="0-5K" checked /> 0-5K</label>
+      <label><input type="checkbox" value="5K-20K" checked /> 5K-20K</label>
+      <label><input type="checkbox" value="20K+" checked /> 20K+</label>
+    </div>
+    <div id="calendar"></div>
+  </div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(
+  'https://dptolytfqrdzhvdlntfb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
+);
+
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const calendar = document.getElementById("calendar");
+const monthSelector = document.getElementById("monthSelector");
+
+let currentUserRange = null;
+
+function generateMonthOptions() {
+  const now = new Date();
+  for (let i = -3; i <= 3; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const option = document.createElement("option");
+    option.value = date.toISOString();
+    option.text = date.toLocaleString("default", { month: "long", year: "numeric" });
+    if (i === 0) option.selected = true;
+    monthSelector.appendChild(option);
+  }
+}
+
+async function fetchUserRange() {
+  const user = (await supabase.auth.getUser()).data.user;
+  currentUserRange = user?.user_metadata?.diamond_range || "0-5K";
+}
+
+function getColorClass(targetRange) {
+  const levels = { "0-5K": 1, "5K-20K": 2, "20K+": 3 };
+  const userLevel = levels[currentUserRange] || 1;
+  const targetLevel = levels[targetRange] || 1;
+  if (userLevel === targetLevel) return "green";
+  if (userLevel > targetLevel) return "orange";
+  return "red";
+}
+
+async function renderCalendar(dateStr) {
+  const selectedDate = new Date(dateStr);
+  const year = selectedDate.getFullYear();
+  const month = selectedDate.getMonth();
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+  calendar.innerHTML = "";
+  weekdays.forEach(day => {
+    const header = document.createElement("div");
+    header.className = "header";
+    header.textContent = day;
+    calendar.appendChild(header);
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const filters = Array.from(document.querySelectorAll("#filterContainer input:checked")).map(c => c.value);
+
+  const { data: entries } = await supabase
+    .from("availability")
+    .select("date, start_time, end_time, user_id, month, diamond_range, tiktok_username")
+    .eq("month", monthKey);
+
+  const grouped = {};
+  entries.forEach(e => {
+    if (!grouped[e.date]) grouped[e.date] = [];
+    if (filters.includes(e.diamond_range)) grouped[e.date].push(e);
+  });
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement("div");
+    calendar.appendChild(empty);
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const cell = document.createElement("div");
+    cell.className = "day";
+    const dateISO = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    cell.textContent = day;
+
+    if (grouped[dateISO]) {
+      grouped[dateISO].forEach(entry => {
+        const tag = document.createElement("span");
+        tag.className = `range-tag ${getColorClass(entry.diamond_range)}`;
+        tag.textContent = entry.diamond_range;
+        tag.onclick = () => {
+          const modal = document.createElement("div");
+          modal.className = "popup";
+          modal.innerHTML = `
+            <div class="popup-box">
+              <h3>${entry.tiktok_username}</h3>
+              <p><strong>Date:</strong> ${entry.date}</p>
+              <p><strong>Time:</strong> ${entry.start_time} - ${entry.end_time}</p>
+              <p><strong>Range:</strong> ${entry.diamond_range}</p>
+              <button onclick="alert('Request sent!')">REQUEST</button>
+            </div>`;
+          modal.onclick = () => document.body.removeChild(modal);
+          document.body.appendChild(modal);
+        };
+        cell.appendChild(tag);
+      });
+    }
+
+    calendar.appendChild(cell);
+  }
+}
+
+monthSelector.addEventListener("change", e => renderCalendar(e.target.value));
+document.querySelectorAll("#filterContainer input").forEach(cb =>
+  cb.addEventListener("change", () => renderCalendar(monthSelector.value))
+);
+generateMonthOptions();
+await fetchUserRange();
+renderCalendar(monthSelector.value);
+</script>
+</body>
+</html>

@@ -4,7 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gone Viral Battle App</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js">
+  window.saveProfile = async () => {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return alert("User not logged in.");
+
+    const update = {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || "",
+      tiktok_username: document.getElementById("profile-tiktok").value,
+      diamond_range: document.getElementById("profile-range").value,
+      agency: document.getElementById("profile-agency").value,
+      timezone: document.getElementById("profile-timezone").value
+    };
+
+    const { error } = await client.from("users").upsert(update);
+    if (error) return alert("Failed to save: " + error.message);
+    alert("Profile updated!");
+  };
+
+</script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -140,13 +160,8 @@
         <optgroup label="PH"><option>Asia/Manila</option></optgroup>
       </select>
       <select id="signup-range">
-  <option>0-10K</option>
-  <option>0-20K</option>
-  <option>20-50K</option>
-  <option>50-100K</option>
-  <option>100-200K</option>
-  <option>200K+</option>
-</select>
+        <option>0-5K</option><option>5K-20K</option><option>20K+</option>
+      </select>
       <input id="signup-agency" placeholder="Agency (optional)" />
       <button onclick="signup()">Register</button>
     </div>
@@ -155,6 +170,14 @@
   </div>
 
   <div class="container" id="dashboard">
+
+<h2>User Profile</h2>
+<input id="profile-tiktok" placeholder="TikTok Username" />
+<input id="profile-range" placeholder="Diamond Range (e.g. 0-10K)" />
+<input id="profile-agency" placeholder="Agency" />
+<input id="profile-timezone" placeholder="Timezone (e.g. America/New_York)" />
+<button onclick="saveProfile()">Save Profile</button>
+
     <h2>Welcome <span id="dashboard-name"></span></h2>
     <p>Email: <span id="dashboard-email"></span></p>
     <p>Username: <span id="dashboard-username"></span></p>
@@ -181,19 +204,28 @@
     const range = document.getElementById("signup-range").value;
     const agency = document.getElementById("signup-agency").value;
 
-    const { error } = await client.auth.signUp({
+    const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          name, tiktok_username: username, timezone, diamond_range: range, agency
-        }
+        data: { name }
       }
     });
 
-    if (error) {
-      alert(`Signup error: ${error.message}`);
+    if (error || !data.user) {
+      alert(`Signup error: ${error?.message}`);
     } else {
+      // Add user profile to 'users' table
+      await client.from("users").upsert({
+        id: data.user.id,
+        email,
+        name,
+        tiktok_username: username,
+        diamond_range: range,
+        agency,
+        timezone
+      });
+
       alert("Signup successful!");
       document.getElementById("signup-container").style.display = "none";
       document.getElementById("login-email").value = email;
@@ -232,6 +264,25 @@
   async function loadDashboard() {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return;
+
+    document.getElementById("auth-container").style.display = "none";
+    document.getElementById("signup-container").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    const { data: profile } = await client.from("users").select("*").eq("id", user.id).single();
+    if (profile) {
+      document.getElementById("dashboard-name").innerText = profile.name || "User";
+      document.getElementById("dashboard-email").innerText = profile.email;
+      document.getElementById("dashboard-username").innerText = profile.tiktok_username || "-";
+      document.getElementById("dashboard-range").innerText = profile.diamond_range || "-";
+
+      document.getElementById("profile-tiktok").value = profile.tiktok_username || "";
+      document.getElementById("profile-range").value = profile.diamond_range || "";
+      document.getElementById("profile-agency").value = profile.agency || "";
+      document.getElementById("profile-timezone").value = profile.timezone || "";
+    }
+  } } = await client.auth.getUser();
+    if (!user) return;
     document.getElementById("auth-container").style.display = "none";
     document.getElementById("signup-container").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
@@ -245,6 +296,26 @@
     const { data: { session } } = await client.auth.getSession();
     if (session && session.user) loadDashboard();
   };
+
+  window.saveProfile = async () => {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return alert("User not logged in.");
+
+    const update = {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || "",
+      tiktok_username: document.getElementById("profile-tiktok").value,
+      diamond_range: document.getElementById("profile-range").value,
+      agency: document.getElementById("profile-agency").value,
+      timezone: document.getElementById("profile-timezone").value
+    };
+
+    const { error } = await client.from("users").upsert(update);
+    if (error) return alert("Failed to save: " + error.message);
+    alert("Profile updated!");
+  };
+
 </script>
 
 </body>

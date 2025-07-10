@@ -156,36 +156,36 @@
     <p>Range: <span id="dashboard-range"></span></p>
   </div>
 
-  <script type="module">
-    const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok';
-    const { createClient } = supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+<script type="module">
+  const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok';
+  const { createClient } = supabase;
+  const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    window.toggleMenu = () => {
-      document.getElementById('nav').classList.toggle('show');
-    };
+  window.toggleMenu = () => {
+    document.getElementById('nav').classList.toggle('show');
+  };
 
-    window.signup = async () => {
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-      const name = document.getElementById("signup-name").value;
-      const username = document.getElementById("signup-tiktok").value;
-      const timezone = document.getElementById("signup-timezone").value;
-      const range = document.getElementById("signup-range").value;
-      const agency = document.getElementById("signup-agency").value;
+  window.signup = async () => {
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
+    const name = document.getElementById("signup-name").value;
+    const username = document.getElementById("signup-tiktok").value;
+    const timezone = document.getElementById("signup-timezone").value;
+    const range = document.getElementById("signup-range").value;
+    const agency = document.getElementById("signup-agency").value;
 
-      const { error } = await client.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name, tiktok_username: username, timezone, diamond_range: range, agency
-          }
+    const { error } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name, tiktok_username: username, timezone, diamond_range: range, agency
         }
-      });
+      }
+    });
 
-      
     if (error) {
       alert(`Signup error: ${error.message}`);
     } else {
@@ -195,58 +195,52 @@
       document.getElementById("login-password").value = password;
       document.getElementById("auth-container").scrollIntoView({ behavior: 'smooth' });
     }
-    
-    };
+  };
 
-    window.login = async () => {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      if (!email || !password) return alert("Please enter both email and password.");
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) return alert("Login error: " + error.message);
-      
-      const { data: { session } } = await client.auth.getSession();
-      if (session?.user?.id) {
-        localStorage.setItem("gv_user_id", session.user.id);
-      }
+  window.login = async () => {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    if (!email || !password) return alert("Please enter both email and password.");
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (error) return alert("Login error: " + error.message);
 
-      loadDashboard();
-    };
-
-    window.resetPassword = async () => {
-      const email = prompt("Enter your email to receive a reset link:");
-      const { error } = await client.auth.resetPasswordForEmail(email);
-      alert(error ? "Reset failed: " + error.message : "Reset link sent.");
-    };
-
-    window.logout = async () => {
-      await client.auth.signOut();
-      alert("Logged out");
-      location.reload();
-    };
-
-    async function loadDashboard() {
-      const { data: { user } } = await client.auth.getUser();
-      if (!user) return;
-      document.getElementById("auth-container").style.display = "none";
-      document.getElementById("signup-container").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-      document.getElementById("dashboard-name").innerText = user.user_metadata?.name || "User";
-      document.getElementById("dashboard-email").innerText = user.email;
-      document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
-      document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
+    const { data: { session } } = await client.auth.getSession();
+    if (session?.user?.id) {
+      localStorage.setItem("gv_user_id", session.user.id);
     }
 
-    window.onload = async () => {
-      const { data: { session } } = await client.auth.getSession();
-      if (session && session.user) 
-      const { data: { session } } = await client.auth.getSession();
-      if (session?.user?.id) {
-        localStorage.setItem("gv_user_id", session.user.id);
-      }
+    loadDashboard();
+  };
 
-      loadDashboard();
-    };
-  </script>
+  window.resetPassword = async () => {
+    const email = prompt("Enter your email to receive a reset link:");
+    const { error } = await client.auth.resetPasswordForEmail(email);
+    alert(error ? "Reset failed: " + error.message : "Reset link sent.");
+  };
+
+  window.logout = async () => {
+    await client.auth.signOut();
+    alert("Logged out");
+    location.reload();
+  };
+
+  async function loadDashboard() {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+    document.getElementById("auth-container").style.display = "none";
+    document.getElementById("signup-container").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("dashboard-name").innerText = user.user_metadata?.name || "User";
+    document.getElementById("dashboard-email").innerText = user.email;
+    document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
+    document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
+  }
+
+  window.onload = async () => {
+    const { data: { session } } = await client.auth.getSession();
+    if (session && session.user) loadDashboard();
+  };
+</script>
+
 </body>
 </html>

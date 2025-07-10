@@ -210,7 +210,6 @@ async function requestBattle(opponentId, day, start, end, timezone) {
         container.appendChild(div);
       }
       document.getElementById("admin-panel").classList.remove("hidden");
-    }
 
     async function clearRestriction(uid) {
       const { error } = await client.auth.admin.updateUserById(uid, {

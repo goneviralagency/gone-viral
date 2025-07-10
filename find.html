@@ -96,6 +96,13 @@
 <div id="calendar"></div>
 </div>
 <script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(
+  'https://dptolytfqrdzhvdlntfb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
+);
+
+
 window.handleBattleRequest = async (entry) => {
     const time = prompt("Select a time from their availability (e.g. 13:00):");
     if (!time) return alert("Time selection is required.");
@@ -129,11 +136,6 @@ window.handleBattleRequest = async (entry) => {
       winner: null
     };
 
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-const supabase = createClient(
-  'https://dptolytfqrdzhvdlntfb.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
-);
 
 const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const levels = ["0-10K", "0-20K", "20-50K", "50-100K", "100-200K", "200K+"];

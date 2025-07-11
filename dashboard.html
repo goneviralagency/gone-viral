@@ -156,7 +156,16 @@
     }
 
     async function cancelBattle(battle) {
-      const { error: logError } = await supabase.from("cancelled").insert([battle]);
+      const { error: logError } = await supabase.from("cancelled").insert([{
+      battle_id: battle.id,
+      requester_id: battle.requester_id,
+      recipient_id: battle.recipient_id,
+      requester_username: battle.requester_username,
+      recipient_username: battle.recipient_username,
+      date: battle.date,
+      time: battle.time,
+      reason: "User cancelled"
+    }]);
       const { error: delError } = await supabase.from("battles").delete().eq("id", battle.id);
       const { error: updateError } = await supabase
         .from("availability")

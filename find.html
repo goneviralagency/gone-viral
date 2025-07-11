@@ -104,8 +104,49 @@
   <a href="find.html">SEARCH</a>
   <a href="settings.html">SETTINGS</a>
 </div>
+<style>
+  .menu {
+    background: #0078d4;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 3px;
+    background: white;
+    margin: 4px 0;
+  }
+  .nav-drawer {
+    display: flex;
+    gap: 16px;
+    padding: 12px;
+    background: #f0f0f0;
+    position: fixed;
+    top: 60px;
+    width: 100%;
+    z-index: 999;
+  }
+  .nav-drawer a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+  }
+</style>
+<script>
+  function toggleMenu() {
+    const nav = document.getElementById("nav");
+    nav.style.display = nav.style.display === "none" ? "flex" : "none";
+  }
+</script>
 
-<div style='margin-top:90px'>
+<div style='margin-top:110px'>
 <div class="container">
 <h1>Find Available Creators</h1>
 <div id="diamondRangeWrapper" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;"><span style="font-weight: bold;">Your Diamond Range:</span></div><select id="monthSelector"></select>

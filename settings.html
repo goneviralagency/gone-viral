@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 40px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 16px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 24px;
+      width: 100%;
+      padding: 12px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Edit Your Profile</h2>
+    <label for="username">TikTok Username</label>
+    <input type="text" id="username" placeholder="@username">
+
+    <label for="range">Diamond Range</label>
+    <select id="range">
+      <option>0-10K</option>
+      <option>0-20K</option>
+      <option>20-50K</option>
+      <option>50-100K</option>
+      <option>100-200K</option>
+      <option>200K+</option>
+    </select>
+
+    <label for="timezone">Timezone</label>
+    <select id="timezone">
+      <option value="America/Toronto">America/Toronto</option>
+      <option value="America/New_York">America/New_York</option>
+      <option value="America/Chicago">America/Chicago</option>
+      <option value="America/Los_Angeles">America/Los_Angeles</option>
+      <option value="Europe/London">Europe/London</option>
+      <option value="Asia/Manila">Asia/Manila</option>
+    </select>
+
+    <label for="agency">Agency</label>
+    <input type="text" id="agency" placeholder="Agency Name">
+
+    <button onclick="saveChanges()">Save Changes</button>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(
+      'https://dptolytfqrdzhvdlntfb.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
+    );
+
+    async function saveChanges() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("Not logged in");
+
+      const updates = {
+        tiktok_username: document.getElementById("username").value,
+        diamond_range: document.getElementById("range").value,
+        timezone: document.getElementById("timezone").value,
+        agency: document.getElementById("agency").value
+      };
+
+      const { error } = await supabase.from("users").update(updates).eq("id", user.id);
+      if (error) {
+        alert("Error saving profile: " + error.message);
+      } else {
+        alert("Profile updated successfully.");
+      }
+    }
+
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase.from("users").select("*").eq("id", user.id).single();
+      if (data) {
+        document.getElementById("username").value = data.tiktok_username || "";
+        document.getElementById("range").value = data.diamond_range || "0-10K";
+        document.getElementById("timezone").value = data.timezone || "America/Toronto";
+        document.getElementById("agency").value = data.agency || "";
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

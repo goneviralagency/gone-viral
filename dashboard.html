@@ -125,7 +125,6 @@
     .update({ status: "available" })
     .eq("user_id", currentUser.id)
     .eq("date", date)
-    .eq("start_time", start_time)
     .neq("status", "_____");  // safe WHERE clause
 
   console.debug("📦 Availability update result:", { availData, updateError });
@@ -163,8 +162,7 @@ async function forceUpdateAvailability(userId, date, start_time) {
     .from("availability")
     .update({ status: "available" })
     .eq("user_id", userId)
-    .eq("date", date)
-    .eq("start_time", start_time);
+    .eq("date", date);
 
   if (error) {
     console.error("⚠️ Force update failed:", error);

@@ -93,7 +93,7 @@
 
 <div class="menu">
   <h3 style="color:white; margin: 0 auto;">Gone Viral Battle App</h3>
-  <div class="hamburger" onclick="toggleMenu()" style="position: absolute; right: 0;">
+  <div class="hamburger" onclick="toggleMenu()" style="position: absolute; right: 20px;">
     <span></span><span></span><span></span>
   </div>
 </div>
@@ -106,17 +106,14 @@
 </div>
 <style>
   .menu {
-  max-width: 960px;
-  margin: 0 auto;
-  position: relative;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     background: #000;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
     padding: 1rem;
     z-index: 1000;
   }
@@ -124,7 +121,7 @@
     width: 30px;
     cursor: pointer;
     position: absolute;
-    right: 0;
+    right: 20px;
   }
   .hamburger span {
     display: block;

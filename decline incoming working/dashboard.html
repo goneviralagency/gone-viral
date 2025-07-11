@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Battles</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Incoming Battles</title>
   <style>
     body {
       font-family: Inter, sans-serif;
@@ -40,16 +40,12 @@
     }
     .accept { background: #28a745; color: white; }
     .decline { background: #dc3545; color: white; }
-    .cancel { background: #ffc107; color: black; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Incoming Battles</h2>
     <div id="incoming"></div>
-
-    <h2>Scheduled Battles</h2>
-    <div id="scheduled"></div>
   </div>
 
   <script type="module">
@@ -66,13 +62,13 @@
       if (!user) return alert("Not logged in");
       currentUser = user;
       loadIncomingBattles();
-      loadScheduledBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
     }
 
     async function loadIncomingBattles() {
       const container = document.getElementById("incoming");
       container.innerHTML = "";
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("battles")
         .select("*")
         .eq("recipient_id", currentUser.id)
@@ -95,35 +91,7 @@
           <button class="decline">Decline</button>
         `;
         div.querySelector(".accept").addEventListener("click", () => acceptBattle(b.id));
-        div.querySelector(".decline").addEventListener("click", () => declineBattle(b.id, b.date));
-        container.appendChild(div);
-      });
-    }
-
-    async function loadScheduledBattles() {
-      const container = document.getElementById("scheduled");
-      container.innerHTML = "";
-      const { data } = await supabase
-        .from("battles")
-        .select("*")
-        .eq("recipient_id", currentUser.id)
-        .eq("recipient_confirm", "confirmed");
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p>No scheduled battles found.</p>";
-        return;
-      }
-
-      data.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <p><strong>@${b.requester_username}</strong></p>
-          <p>Date: ${b.date}</p>
-          <p>Time: ${b.time}</p>
-          <button class="cancel">Cancel</button>
-        `;
-        div.querySelector(".cancel").addEventListener("click", () => cancelBattle(b));
+        div.querySelector(".decline").addEventListener("click", () => declineBattle(b.id, b.date, b.start_time));
         container.appendChild(div);
       });
     }
@@ -137,39 +105,72 @@
       else {
         alert("Battle accepted.");
         loadIncomingBattles();
-        loadScheduledBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
       }
     }
 
-    async function declineBattle(id, date) {
-      const { error: delError } = await supabase.from("battles").delete().eq("id", id);
-      const { error: updateError } = await supabase
+    async function declineBattle(id, date, start_time) {
+  console.debug("⏪ Declining battle:", { id, date, start_time });
+
+  // Delete the battle record
+  const { error: delError } = await supabase
+    .from("battles")
+    .delete()
+    .eq("id", id);
+  console.debug("🗑️ Battle delete error:", delError);
+
+  // Update availability (requires WHERE clause)
+  const { data: availData, error: updateError } = await supabase
+    .from("availability")
+    .update({ status: "available" })
+    .eq("user_id", currentUser.id)
+    .eq("date", date)
+    .neq("status", "_____");  // safe WHERE clause
+
+  console.debug("📦 Availability update result:", { availData, updateError });
+
+  if (delError || updateError) {
+    alert("Failed to decline battle or update availability.");
+  } else {
+    alert("Battle declined and availability set to available.");
+    loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
+  }
+      const { error: battleError } = await supabase
+        .from("battles")
+        .delete()
+        .eq("id", id);
+
+      const { error: availError } = await supabase
         .from("availability")
         .update({ status: "available" })
-        .eq("user_id", currentUser.id)
-        .eq("date", date);
+        .eq("date", date)
+        .eq("start_time", start_time);
+
       if (delError || updateError) alert("Failed to decline battle or update availability.");
       else {
-        alert("Battle declined and availability updated.");
+        alert("Battle declined and availability set to available.");
         loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
       }
     }
 
-    async function cancelBattle(battle) {
-      const { error: logError } = await supabase.from("cancelled").insert([battle]);
-      const { error: delError } = await supabase.from("battles").delete().eq("id", battle.id);
-      const { error: updateError } = await supabase
-        .from("availability")
-        .update({ status: "available" })
-        .eq("user_id", currentUser.id)
-        .eq("date", battle.date);
-      if (logError || delError || updateError) {
-        alert("Failed to cancel or update availability.");
-      } else {
-        alert("Battle cancelled, availability updated, and entry logged.");
-        loadScheduledBattles();
-      }
-    }
+    
+async function forceUpdateAvailability(userId, date, start_time) {
+  console.debug("🔁 Forcing availability update:", { userId, date, start_time });
+  const { data, error } = await supabase
+    .from("availability")
+    .update({ status: "available" })
+    .eq("user_id", userId)
+    .eq("date", date);
+
+  if (error) {
+    console.error("⚠️ Force update failed:", error);
+  } else {
+    console.debug("✅ Availability force-updated:", data);
+  }
+}
+
 
     loadUser();
   </script>

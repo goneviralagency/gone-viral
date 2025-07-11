@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gone Viral Battle App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #111;
+      color: white;
+      padding: 0;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    input, select {
+      width: 100%;
+      max-width: 300px;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: none;
+      background: #222;
+      color: white;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #007aff;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+    }
+    .link {
+      margin-top: 0.5rem;
+      color: #7aaeff;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    #dashboard {
+      margin-top: 2rem;
+      display: none;
+    }
+    .hidden { display: none; }
+
+    .menu {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      background: #000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .hamburger {
+      width: 30px;
+      cursor: pointer;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 100%;
+      height: 4px;
+      background: white;
+      margin: 5px 0;
+      border-radius: 2px;
+    }
+
+    .nav-drawer {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: #1e1e1e;
+      padding: 1rem;
+      display: none;
+    }
+
+    .nav-drawer a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin: 1rem 0;
+    }
+
+    .nav-drawer.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu">
+    <h3 style="color:white;">Gone Viral Battle App</h3>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div id="nav" class="nav-drawer">
+    <a href="#" onclick="logout()">Log Out</a>
+    <a href="avail.html">Availability</a>
+  </div>
+
+  <div class="container" id="auth-container">
+    <h1>Login</h1>
+    <input id="login-email" type="email" placeholder="Email" />
+    <input id="login-password" type="password" placeholder="Password" />
+    <div class="link" onclick="resetPassword()">Forgot Password?</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"><button onclick="login()">Login</button><button style="background:#ff9500;" onclick="document.getElementById('signup-container').style.display='block';window.scrollTo(0,document.body.scrollHeight);">New User</button></div>
+  </div>
+
+  
+  <div class="container hidden" id="signup-container">
+    <h1>Sign Up</h1>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%;">
+      <input id="signup-name" placeholder="Full Name" />
+      <input id="signup-tiktok" placeholder="TikTok Username" />
+      <input id="signup-email" placeholder="Email" />
+      <input id="signup-password" type="password" placeholder="Password" />
+      <select id="signup-timezone">
+        <optgroup label="CA"><option>America/Toronto</option><option>America/Vancouver</option></optgroup>
+        <optgroup label="US"><option>America/New_York</option><option>America/Chicago</option></optgroup>
+        <optgroup label="UK"><option>Europe/London</option></optgroup>
+        <optgroup label="PH"><option>Asia/Manila</option></optgroup>
+      </select>
+      <select id="signup-range">
+  <option>0-10K</option>
+  <option>0-20K</option>
+  <option>20-50K</option>
+  <option>50-100K</option>
+  <option>100-200K</option>
+  <option>200K+</option>
+</select>
+      <input id="signup-agency" placeholder="Agency (optional)" />
+      <button onclick="signup()">Register</button>
+    </div>
+  </div>
+    
+  </div>
+
+  <div class="container" id="dashboard">
+    <h2>Welcome <span id="dashboard-name"></span></h2>
+    <p>Email: <span id="dashboard-email"></span></p>
+    <p>Username: <span id="dashboard-username"></span></p>
+    <p>Range: <span id="dashboard-range"></span></p>
+  </div>
+
+  
+
+<script type="module">
+  const SUPABASE_URL = 'https://dptolytfqrdzhvdlntfb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok';
+  const { createClient } = supabase;
+  const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  window.toggleMenu = () => {
+    document.getElementById('nav').classList.toggle('show');
+  };
+
+  window.signup = async function () {
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
+    const name = document.getElementById("signup-name").value;
+    const username = document.getElementById("signup-tiktok").value;
+    const timezone = document.getElementById("signup-timezone").value;
+    const range = document.getElementById("signup-range").value;
+    const agency = document.getElementById("signup-agency").value;
+
+    const { data, error: signupError } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name, tiktok_username: username, timezone, diamond_range: range, agency
+        }
+      }
+    });
+
+    if (signupError) {
+      alert(`Signup error: ${signupError.message}`);
+      return;
+    }
+
+    const userId = data?.user?.id;
+    if (!userId) {
+      alert("Signup succeeded but user ID not returned.");
+      return;
+    }
+
+    const { error: insertError } = await client
+      .from("users")
+      .insert([{
+        id: userId,
+        name,
+        email,
+        tiktok_username: username,
+        timezone,
+        diamond_range: range,
+        agency
+      }]);
+
+    if (insertError) {
+      alert("User created but failed to store profile: " + insertError.message);
+    } else {
+      alert("Signup successful!");
+      document.getElementById("signup-container").style.display = "none";
+      document.getElementById("login-email").value = email;
+      document.getElementById("login-password").value = password;
+      document.getElementById("auth-container").scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  window.login = async function () {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    if (!email || !password) return alert("Please enter both email and password.");
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (error) return alert("Login error: " + error.message);
+
+    const { data: { session } } = await client.auth.getSession();
+    if (session?.user?.id) {
+      localStorage.setItem("gv_user_id", session.user.id);
+    }
+
+    loadDashboard();
+  };
+
+  window.resetPassword = async function () {
+    const email = prompt("Enter your email to receive a reset link:");
+    const { error } = await client.auth.resetPasswordForEmail(email);
+    alert(error ? "Reset failed: " + error.message : "Reset link sent.");
+  };
+
+  window.logout = async function () {
+    await client.auth.signOut();
+    alert("Logged out");
+    location.reload();
+  };
+
+  async function loadDashboard() {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+    document.getElementById("auth-container").style.display = "none";
+    document.getElementById("signup-container").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("dashboard-name").innerText = user.user_metadata?.name || "User";
+    document.getElementById("dashboard-email").innerText = user.email;
+    document.getElementById("dashboard-username").innerText = user.user_metadata?.tiktok_username || "-";
+    document.getElementById("dashboard-range").innerText = user.user_metadata?.diamond_range || "-";
+  }
+
+  window.onload = async () => {
+    const { data: { session } } = await client.auth.getSession();
+    if (session && session.user) loadDashboard();
+  };
+</script>
+
+
+</body>
+</html>

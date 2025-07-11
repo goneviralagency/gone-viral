@@ -254,7 +254,8 @@
   };
 
   async function loadDashboard() {
-    const { data: { user } } = await client.auth.getUser();
+  window.location.href = "dashboard.html";
+} } = await client.auth.getUser();
     if (!user) return;
     document.getElementById("auth-container").style.display = "none";
     document.getElementById("signup-container").style.display = "none";

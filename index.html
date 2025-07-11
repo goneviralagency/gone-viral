@@ -226,7 +226,6 @@
     }
   };
 
-  
   window.login = async function () {
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
@@ -237,10 +236,9 @@
     const { data: { session } } = await client.auth.getSession();
     if (session?.user?.id) {
       localStorage.setItem("gv_user_id", session.user.id);
-      window.location.href = "dashboard.html";
     }
-  };
 
+    loadDashboard();
   };
 
   window.resetPassword = async function () {

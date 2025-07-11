@@ -97,7 +97,7 @@
     <span></span><span></span><span></span>
   </div>
 </div>
-<div id="nav" class="nav-drawer" style="display:none;">
+<div id="nav" class="nav-drawer" style="display:none;" style="display:none;">
   <a href="index.html">Home - Login</a>
   <a href="dashboard.html">DASH BOARD</a>
   <a href="avail.html">AVAIL</a>
@@ -106,14 +106,17 @@
 </div>
 <style>
   .menu {
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     background: #000;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     padding: 1rem;
     z-index: 1000;
   }
@@ -140,6 +143,7 @@
     padding: 1rem;
     display: none;
     z-index: 999;
+    flex-direction: column;
   }
   .nav-drawer a {
     display: block;
@@ -148,13 +152,14 @@
     margin: 1rem 0;
   }
   .nav-drawer.show {
-    display: block;
+    display: flex;
   }
 </style>
 <script>
-  window.toggleMenu = () => {
-    document.getElementById('nav').classList.toggle('show');
-  };
+  function toggleMenu() {
+    const nav = document.getElementById('nav');
+    nav.classList.toggle('show');
+  }
 </script>
 
 <div style='margin-top:130px;'>

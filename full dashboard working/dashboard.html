@@ -164,7 +164,6 @@
         .eq("user_id", currentUser.id)
         .eq("date", battle.date);
       if (logError || delError || updateError) {
-        console.error('❌ Cancel failed:', { logError, delError, updateError });
         alert("Failed to cancel or update availability.");
       } else {
         alert("Battle cancelled, availability updated, and entry logged.");
@@ -173,7 +172,6 @@
     }
 
     loadUser();
-setInterval(() => { loadIncomingBattles(); loadScheduledBattles(); }, 60000);
   </script>
 </body>
 </html>

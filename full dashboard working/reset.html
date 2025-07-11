@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Availability Reset</title>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      text-align: center;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reset Availability Table</h2>
+  <p>This test will set <strong>all records</strong> in the availability table to status = 'available'.</p>
+  <button onclick="resetAvailability()">Run Test</button>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(
+      'https://dptolytfqrdzhvdlntfb.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG9seXRmcXJkemh2ZGxudGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5NzUzMDksImV4cCI6MjA2NzU1MTMwOX0.gi8fekd2RZUomuAebzTU_Vs62pJXQBcSukr2evYcnok'
+    );
+
+    window.resetAvailability = async function () {
+      const { data, error } = await supabase
+        .from("availability")
+        .update({ status: "available" }).neq("status", "_____");
+
+      if (error) {
+        alert("Error: " + error.message);
+        console.error("Update error:", error);
+      } else {
+        alert("All availability rows updated to status = 'available'");
+        console.log("Update result:", data);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -62,6 +62,7 @@
       if (!user) return alert("Not logged in");
       currentUser = user;
       loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
     }
 
     async function loadIncomingBattles() {
@@ -104,6 +105,7 @@
       else {
         alert("Battle accepted.");
         loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
       }
     }
 
@@ -133,6 +135,7 @@
   } else {
     alert("Battle declined and availability set to available.");
     loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
   }
       const { error: battleError } = await supabase
         .from("battles")
@@ -149,8 +152,27 @@
       else {
         alert("Battle declined and availability set to available.");
         loadIncomingBattles();
+    forceUpdateAvailability(currentUser.id, date, start_time);
       }
     }
+
+    
+async function forceUpdateAvailability(userId, date, start_time) {
+  console.debug("🔁 Forcing availability update:", { userId, date, start_time });
+  const { data, error } = await supabase
+    .from("availability")
+    .update({ status: "available" })
+    .eq("user_id", userId)
+    .eq("date", date)
+    .eq("start_time", start_time);
+
+  if (error) {
+    console.error("⚠️ Force update failed:", error);
+  } else {
+    console.debug("✅ Availability force-updated:", data);
+  }
+}
+
 
     loadUser();
   </script>

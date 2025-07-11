@@ -157,6 +157,10 @@
     }
 
     loadUser();
+    setInterval(() => {
+      loadIncomingBattles();
+      loadScheduledBattles();
+    }, 60000);
   </script>
 </body>
 </html>
